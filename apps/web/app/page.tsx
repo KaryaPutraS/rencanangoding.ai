@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { SupportedLanguages } from "@rencanangoding/shared";
-import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2 } from "lucide-react";
+import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2, Lock, UserCheck } from "lucide-react";
+import { useAuth } from "@/components/AuthContext";
 
 const PRESET_IDEAS = [
   "SaaS Platform jualan template Prompt AI dengan langganan & payout Midtrans",
@@ -14,6 +15,8 @@ const PRESET_IDEAS = [
 
 export default function Home() {
   const router = useRouter();
+  const { user, openAuthModal } = useAuth();
+
   const [idea, setIdea] = useState("");
   const [language, setLanguage] = useState("id");
   const [techPref, setTechPref] = useState<"ai_choice" | "manual">("ai_choice");
@@ -35,6 +38,13 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      setError("Kamu wajib verifikasi email & login terlebih dahulu sebelum menggunakan sistem.");
+      openAuthModal();
+      return;
+    }
+
     if (!idea.trim() || idea.trim().length < 5) {
       setError("Mohon jelaskan ide aplikasi kamu secara singkat (minimal 5 karakter).");
       return;
@@ -56,6 +66,12 @@ export default function Home() {
       });
 
       const data = await res.json();
+      if (res.status === 401 || data.error?.includes("login")) {
+        setError("Silakan verifikasi email kamu terlebih dahulu.");
+        openAuthModal();
+        return;
+      }
+
       if (data.success && data.plan) {
         router.push(`/plan/${data.plan.id}/discovery`);
       } else {
@@ -91,6 +107,33 @@ export default function Home() {
 
         {/* Main Input Form Card */}
         <div className="w-full tech-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-2xl space-y-6">
+          {/* Mandatory Login Notice Banner if not logged in */}
+          {!user ? (
+            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex items-center justify-between gap-3 text-xs text-amber-200 animate-in fade-in">
+              <div className="flex items-center gap-2.5">
+                <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>
+                  <strong className="font-mono">VERIFIKASI EMAIL DIPERLUKAN:</strong> Silakan verifikasi email kamu sebelum membuat spesifikasi aplikasi.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={openAuthModal}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs shrink-0 transition-colors"
+              >
+                Masuk / Verifikasi OTP
+              </button>
+            </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 flex items-center justify-between text-xs text-emerald-300 font-mono">
+              <span className="flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>AKUN TERVERIFIKASI: <strong className="text-white">{user.email}</strong></span>
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200">AKTIF 🟢</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Idea Input Textarea */}
             <div className="space-y-2">
@@ -117,7 +160,10 @@ export default function Home() {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setIdea(p)}
+                    onClick={() => {
+                      setIdea(p);
+                      if (!user) openAuthModal();
+                    }}
                     className="px-2.5 py-1 rounded-lg bg-gray-900/90 hover:bg-gray-800 border border-white/[0.08] text-[11px] text-gray-300 hover:text-white transition-colors truncate max-w-xs shrink-0"
                   >
                     {p}
@@ -229,8 +275,17 @@ export default function Home() {
 
             {/* Error Message */}
             {error && (
-              <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs font-medium">
-                {error}
+              <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs font-medium flex items-center justify-between">
+                <span>{error}</span>
+                {!user && (
+                  <button
+                    type="button"
+                    onClick={openAuthModal}
+                    className="px-2.5 py-1 rounded bg-red-900 text-red-100 font-bold text-[11px] hover:bg-red-800 shrink-0 ml-2"
+                  >
+                    Login OTP →
+                  </button>
+                )}
               </div>
             )}
 
@@ -244,6 +299,12 @@ export default function Home() {
                 <>
                   <Zap className="w-5 h-5 animate-spin" />
                   <span>Memproses Arsitektur Aplikasi...</span>
+                </>
+              ) : !user ? (
+                <>
+                  <Lock className="w-5 h-5" />
+                  <span>Verifikasi Email & Mulai Rancang</span>
+                  <ArrowRight className="w-5 h-5" />
                 </>
               ) : (
                 <>

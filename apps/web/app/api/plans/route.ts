@@ -28,8 +28,15 @@ export async function POST(req: Request) {
     const parsed = CreatePlanSchema.parse(body);
     const user = await getCurrentUser(req);
 
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Kamu wajib verifikasi email & login terlebih dahulu sebelum menggunakan sistem." },
+        { status: 401 }
+      );
+    }
+
     const plan = await dbStore.createPlan({
-      userId: user ? user.id : "demo-user",
+      userId: user.id,
       rawIdea: parsed.rawIdea,
       outputLanguage: parsed.outputLanguage as any,
       techPreference: parsed.techPreference as any,
