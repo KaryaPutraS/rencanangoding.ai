@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { Navbar } from "@/components/Navbar";
+import { ConfirmModal } from "@/components/ConfirmModal";
 import { TaskItem, Plan } from "@rencanangoding/shared";
 import {
   Sparkles,
@@ -28,6 +29,7 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [error, setError] = useState("");
   const [showImplModal, setShowImplModal] = useState(false);
   const [prdMarkdown, setPrdMarkdown] = useState("");
@@ -72,11 +74,9 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
     }
   };
 
-  const handleResetProgress = async () => {
-    if (!window.confirm("Apakah Anda yakin ingin mereset seluruh progres task ke status awal (Belum Mulai)?")) {
-      return;
-    }
+  const executeResetProgress = async () => {
     setResetting(true);
+    setShowResetConfirm(false);
     try {
       const res = await fetch(`/api/plans/${id}/tasks/reset`, { method: "POST" });
       const data = await res.json();
@@ -152,7 +152,7 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
               <>
                 {/* Reset Progress Button */}
                 <button
-                  onClick={handleResetProgress}
+                  onClick={() => setShowResetConfirm(true)}
                   disabled={resetting}
                   title="Reset seluruh progres task ke awal"
                   className="px-3.5 py-2 rounded-xl bg-gray-900 border border-white/[0.08] text-xs font-semibold font-mono text-amber-400 hover:bg-gray-800 hover:text-amber-300 transition-colors flex items-center gap-1.5"
@@ -372,6 +372,19 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
           </div>
         )}
       </main>
+
+      {/* Custom Confirm Modal for Resetting Task Progress */}
+      <ConfirmModal
+        isOpen={showResetConfirm}
+        title="Reset Seluruh Progres Task?"
+        message="Apakah Anda yakin ingin mereset seluruh progres task ke status awal (Belum Mulai)? Tindakan ini akan mengembalikan status eksekusi task agar dapat diulang dari awal oleh CLI Agent."
+        confirmLabel="Ya, Reset Progres"
+        cancelLabel="Batal"
+        variant="warning"
+        loading={resetting}
+        onConfirm={executeResetProgress}
+        onCancel={() => setShowResetConfirm(false)}
+      />
 
       <ImplementationModal
         isOpen={showImplModal}

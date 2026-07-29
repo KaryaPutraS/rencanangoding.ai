@@ -8,6 +8,7 @@ import { Terminal, Globe, FolderGit2, Plus, Code2, Settings, Trash2, Cpu, UserCh
 import { SettingsModal } from "./SettingsModal";
 import { TunnelStatusModal } from "./TunnelStatusModal";
 import { AuthModal } from "./AuthModal";
+import { ConfirmModal } from "./ConfirmModal";
 import { useAuth } from "./AuthContext";
 
 export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
@@ -19,6 +20,8 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showTunnelModal, setShowTunnelModal] = useState(false);
   const [tunnelActive, setTunnelActive] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch("/api/plans")
@@ -40,25 +43,33 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
       .catch(() => {});
   }, [user]);
 
-  const handleDeletePlan = async (e: React.MouseEvent, planId: string) => {
+  const requestDeletePlan = (e: React.MouseEvent, planId: string) => {
     e.stopPropagation();
     e.preventDefault();
+    setPlanToDelete(planId);
+  };
 
-    if (!confirm("Apakah kamu yakin ingin menghapus plan ini?")) return;
-
+  const confirmDeletePlan = async () => {
+    if (!planToDelete) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/plans/${planId}`, { method: "DELETE" });
+      const res = await fetch(`/api/plans/${planToDelete}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        setPlans((prev) => prev.filter((p) => p.id !== planId));
-        if (planId === currentPlanId) {
+        setPlans((prev) => prev.filter((p) => p.id !== planToDelete));
+        if (planToDelete === currentPlanId) {
           router.push("/");
         }
       }
     } catch (err) {
       console.error("Error deleting plan:", err);
+    } finally {
+      setDeleting(false);
+      setPlanToDelete(null);
     }
   };
+
+  const targetPlanName = plans.find((p) => p.id === planToDelete)?.name || "Rencana ini";
 
   return (
     <>
@@ -198,7 +209,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
                             </p>
                           </Link>
                           <button
-                            onClick={(e) => handleDeletePlan(e, p.id)}
+                            onClick={(e) => requestDeletePlan(e, p.id)}
                             title="Hapus Plan"
                             className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-950/50 transition-colors opacity-80 group-hover:opacity-100"
                           >
@@ -260,6 +271,19 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
           </Link>
         </div>
       )}
+
+      {/* Custom Confirmation Modal for Deleting Plan */}
+      <ConfirmModal
+        isOpen={!!planToDelete}
+        title="Hapus Rencana Aplikasi?"
+        message={`Apakah Anda yakin ingin menghapus "${targetPlanName}"? Tindakan ini akan menghapus dokumen PRD, mind map fitur, dan seluruh task breakdown secara permanen.`}
+        confirmLabel="Ya, Hapus Permanent"
+        cancelLabel="Batal"
+        variant="danger"
+        loading={deleting}
+        onConfirm={confirmDeletePlan}
+        onCancel={() => setPlanToDelete(null)}
+      />
 
       {/* Modals */}
       <AuthModal
