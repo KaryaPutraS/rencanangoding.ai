@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileCode, Terminal, Copy, Check, ShieldAlert, X, Sparkles } from "lucide-react";
+import { Download, FileCode, Terminal, Copy, Check, ShieldAlert, X, Sparkles, Link, ExternalLink } from "lucide-react";
 import { FeatureNode, TaskItem } from "@rencanangoding/shared";
 
 interface ImplementationModalProps {
@@ -24,12 +24,14 @@ export function ImplementationModal({
   tasks = []
 }: ImplementationModalProps) {
   const [copied, setCopied] = useState(false);
-  const [showSecurityWarning, setShowSecurityWarning] = useState(true);
+  const [copiedLinkCmd, setCopiedLinkCmd] = useState(false);
 
   if (!isOpen) return null;
 
   const cliToken = `rng_${planId.slice(0, 12)}_${Date.now().toString(36)}`;
-  const cliPrompt = `RENCANANGODING_SERVER_URL=http://localhost:7518 npx rencanangoding login --token ${cliToken} && npx rencanangoding plan get ${planId} && npx rencanangoding task next --plan ${planId}`;
+  const globalCmd = `rencanangoding login --token ${cliToken} && rencanangoding plan get ${planId} && rencanangoding task next --plan ${planId}`;
+  const npxGithubCmd = `npx github:KaryaPutraS/rencanangoding.ai#main login --token ${cliToken} && npx github:KaryaPutraS/rencanangoding.ai#main plan get ${planId} && npx github:KaryaPutraS/rencanangoding.ai#main task next --plan ${planId}`;
+  const linkCommand = `cd "c:\\Users\\akuns\\Downloads\\google rencanangoding.ai\\apps\\cli" && npm link`;
 
   const downloadPrdFile = () => {
     const blob = new Blob([prdMarkdown], { type: "text/markdown;charset=utf-8" });
@@ -59,15 +61,20 @@ export function ImplementationModal({
     URL.revokeObjectURL(url);
   };
 
-  const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(cliPrompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+  const handleCopyPrompt = (textToCopy: string, isLink: boolean = false) => {
+    navigator.clipboard.writeText(textToCopy);
+    if (isLink) {
+      setCopiedLinkCmd(true);
+      setTimeout(() => setCopiedLinkCmd(false), 2500);
+    } else {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="tech-panel w-full max-w-2xl rounded-3xl p-6 border border-white/[0.08] shadow-2xl relative space-y-6">
+      <div className="tech-panel w-full max-w-2xl rounded-3xl p-6 border border-white/[0.08] shadow-2xl relative space-y-5 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -82,7 +89,7 @@ export function ImplementationModal({
             <Terminal className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-100">Mulai Implementasi Otomatis</h2>
+            <h2 className="text-lg font-bold text-gray-100">Mulai Eksekusi CLI Agent</h2>
             <p className="text-xs text-gray-400">Pilih metode eksekusi sesuai workflow AI Agent pilihan kamu</p>
           </div>
         </div>
@@ -115,7 +122,7 @@ export function ImplementationModal({
               <p className="text-[11px] text-gray-400 mt-1">Paket lengkap PRD + Fitur + Tasks JSON</p>
             </div>
             <span className="mt-4 text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">
-              Unduh JSON/ZIP →
+              Unduh JSON →
             </span>
           </button>
 
@@ -127,45 +134,73 @@ export function ImplementationModal({
             <div>
               <Terminal className="w-6 h-6 text-sky-400 mb-2 group-hover:scale-110 transition-transform" />
               <h3 className="text-xs font-bold text-sky-200">Prompt CLI Agent</h3>
-              <p className="text-[11px] text-emerald-300 mt-1">Siap-pakai untuk Claude Code / Cursor</p>
+              <p className="text-[11px] text-emerald-300 mt-1">Siap-pakai untuk Claude Code / Kimi / OpenCode</p>
             </div>
             <span className="mt-4 text-[10px] text-sky-300 font-semibold uppercase tracking-wider">
-              Lihat CLI Prompt →
+              Lihat Perintah →
             </span>
           </button>
         </div>
 
-        {/* Security Warning Notice */}
-        {showSecurityWarning && (
-          <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex items-start gap-3 text-xs text-amber-200">
-            <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <span className="font-bold block mb-0.5">Peringatan Keamanan Access Token</span>
-              <span>
-                Token CLI tersemat secara otomatis untuk menghubungkan terminal kamu dengan dashboard ini.
-                Jangan bagikan prompt ini di repositori publik.
-              </span>
-            </div>
+        {/* Global Link Fix Notice */}
+        <div className="p-3.5 rounded-2xl bg-gray-950 border border-white/[0.08] space-y-2 text-xs">
+          <div className="flex items-center justify-between text-amber-400 font-mono font-bold text-[11px]">
+            <span>💡 TIPS AGAR PERINTAH 'rencanangoding' BISA DIJALANKAN DI FOLDER MANAPUN:</span>
           </div>
-        )}
-
-        {/* CLI Command Copy Box */}
-        <div id="cli-prompt-section" className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-gray-300 font-semibold">
-            <span>Perintah CLI Siap-Pakai Terminal:</span>
-            <span className="text-[10px] font-mono text-emerald-400">npx rencanangoding v0.1</span>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-gray-950 border border-white/[0.08] flex items-center justify-between gap-3">
-            <code className="text-xs font-mono text-emerald-400 truncate flex-1 overflow-x-auto">
-              {cliPrompt}
+          <p className="text-gray-300 text-[11px] leading-relaxed">
+            Jalankan perintah ini <span className="font-mono text-emerald-400">1x di Terminal</span> untuk mendaftarkan command CLI <code className="text-emerald-300 font-mono">rencanangoding</code> secara global di komputer kamu:
+          </p>
+          <div className="flex items-center justify-between bg-gray-900 p-2.5 rounded-xl border border-white/[0.08] gap-2">
+            <code className="text-[11px] font-mono text-amber-300 truncate">
+              {linkCommand}
             </code>
             <button
-              onClick={handleCopyPrompt}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shrink-0 transition-all"
+              onClick={() => handleCopyPrompt(linkCommand, true)}
+              className="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-[10px] font-mono shrink-0 transition-colors"
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? "Tersalin!" : "Salin Perintah"}</span>
+              {copiedLinkCmd ? "Tersalin!" : "Salin Link Cmd"}
             </button>
+          </div>
+        </div>
+
+        {/* CLI Command Copy Box */}
+        <div id="cli-prompt-section" className="space-y-3">
+          {/* Method 1: Linked Command */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-gray-300 font-semibold">
+              <span className="text-emerald-400 font-mono font-bold">1. Perintah CLI Utama (Jika sudah npm link / global):</span>
+            </div>
+            <div className="p-3 rounded-2xl bg-gray-950 border border-white/[0.08] flex items-center justify-between gap-3">
+              <code className="text-xs font-mono text-emerald-300 truncate flex-1 overflow-x-auto">
+                {globalCmd}
+              </code>
+              <button
+                onClick={() => handleCopyPrompt(globalCmd)}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shrink-0 transition-all"
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? "Tersalin!" : "Salin Perintah"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Method 2: Direct GitHub NPX Fallback */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-gray-300 font-semibold">
+              <span className="text-cyan-400 font-mono font-bold">2. Perintah NPX Direct GitHub (Tanpa Perlu Setup Local):</span>
+            </div>
+            <div className="p-3 rounded-2xl bg-gray-950 border border-white/[0.08] flex items-center justify-between gap-3">
+              <code className="text-xs font-mono text-cyan-300 truncate flex-1 overflow-x-auto">
+                {npxGithubCmd}
+              </code>
+              <button
+                onClick={() => handleCopyPrompt(npxGithubCmd)}
+                className="px-3 py-1.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shrink-0 transition-all"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Salin NPX GitHub</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
