@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Mail, ShieldCheck, Key, Lock, ArrowRight, Loader2, AlertCircle, CheckCircle2, Sparkles, UserCheck } from "lucide-react";
 import { useAuth } from "./AuthContext";
+import { getAiHeaders } from "@/lib/useSettings";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...getAiHeaders() },
         body: JSON.stringify({ email: email.trim() })
       });
       const data = await res.json();

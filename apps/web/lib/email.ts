@@ -3,19 +3,29 @@ import nodemailer from "nodemailer";
 interface SendOtpParams {
   toEmail: string;
   otpCode: string;
+  config?: {
+    resendApiKey?: string;
+    smtpHost?: string;
+    smtpPort?: string;
+    smtpUser?: string;
+    smtpPass?: string;
+    emailFrom?: string;
+  };
 }
 
 export async function sendOtpEmail({
   toEmail,
-  otpCode
+  otpCode,
+  config
 }: SendOtpParams): Promise<{ sent: boolean; provider?: string; error?: string }> {
   const fromEmail =
+    config?.emailFrom ||
     process.env.EMAIL_FROM ||
     process.env.SMTP_FROM ||
-    `"RencanaNgoding.ai" <no-reply@ksatriyo.id>`;
+    `"RencanaNgoding.ai" <otp@ksatriyo.id>`;
 
-  // 1. Check if Resend API Key is configured in environment
-  const resendApiKey = process.env.RESEND_API_KEY;
+  // 1. Check if Resend API Key is configured
+  const resendApiKey = config?.resendApiKey || process.env.RESEND_API_KEY;
   if (resendApiKey) {
     try {
       const res = await fetch("https://api.resend.com/emails", {
@@ -43,17 +53,17 @@ export async function sendOtpEmail({
   }
 
   // 2. Check if SMTP configuration exists (Hostinger Email / AWS SES / Custom SMTP)
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = parseInt(process.env.SMTP_PORT || "465");
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const smtpHost = config?.smtpHost || process.env.SMTP_HOST;
+  const smtpPort = parseInt(config?.smtpPort || process.env.SMTP_PORT || "465");
+  const smtpUser = config?.smtpUser || process.env.SMTP_USER;
+  const smtpPass = config?.smtpPass || process.env.SMTP_PASS;
 
   if (smtpHost && smtpUser && smtpPass) {
     try {
       const transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
-        secure: smtpPort === 465, // true for 465, false for 587
+        secure: smtpPort === 465,
         auth: {
           user: smtpUser,
           pass: smtpPass
@@ -74,8 +84,8 @@ export async function sendOtpEmail({
     }
   }
 
-  // No email credentials configured in environment -> Fallback
-  return { sent: false, error: "Belum ada variabel environment SMTP / Resend" };
+  // No credentials provided
+  return { sent: false, error: "Belum ada konfigurasi SMTP / Resend API Key" };
 }
 
 function getOtpHtmlTemplate(code: string, email: string): string {
