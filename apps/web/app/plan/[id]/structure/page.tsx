@@ -75,24 +75,8 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
     initPage();
   }, [id]);
 
-  const handleGeneratePrd = async () => {
-    setGeneratingPrd(true);
-    try {
-      const res = await fetch(`/api/plans/${id}/generate-prd`, {
-        method: "POST",
-        headers: { ...getAiHeaders() }
-      });
-      const data = await res.json();
-      if (data.success) {
-        router.push(`/plan/${id}/prd`);
-      } else {
-        setError(data.error || "Gagal membuat PRD");
-        setGeneratingPrd(false);
-      }
-    } catch (err) {
-      setError("Gagal membuat PRD");
-      setGeneratingPrd(false);
-    }
+  const handleGeneratePrd = () => {
+    router.push(`/plan/${id}/prd?autoGenerate=true`);
   };
 
   if (loading) {

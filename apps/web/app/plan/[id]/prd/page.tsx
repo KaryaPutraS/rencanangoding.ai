@@ -1,19 +1,25 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { PrdSplitView } from "@/components/prd/PrdSplitView";
+import { LivePrdGeneratorView } from "@/components/prd/LivePrdGeneratorView";
 import { FeatureNode, TaskItem, Plan, PrdDocument } from "@rencanangoding/shared";
+import { getAiHeaders } from "@/lib/useSettings";
 import { Loader2 } from "lucide-react";
 
 export default function PrdStudioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const shouldAutoGenerate = searchParams.get("autoGenerate") === "true";
 
   const [plan, setPlan] = useState<Plan | null>(null);
   const [prd, setPrd] = useState<PrdDocument | null>(null);
   const [features, setFeatures] = useState<FeatureNode[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -22,16 +28,35 @@ export default function PrdStudioPage({ params }: { params: Promise<{ id: string
       .then((data) => {
         if (data.success) {
           setPlan(data.plan);
-          setPrd(data.prd);
           setFeatures(data.features || []);
           setTasks(data.tasks || []);
+
+          if (data.prd && !shouldAutoGenerate) {
+            setPrd(data.prd);
+            setLoading(false);
+          } else {
+            // Need to generate PRD live
+            setGenerating(true);
+            setLoading(false);
+          }
         } else {
           setError(data.error || "Gagal memuat dokumen PRD");
+          setLoading(false);
         }
       })
-      .catch(() => setError("Gagal terhubung ke server"))
-      .finally(() => setLoading(false));
-  }, [id]);
+      .catch(() => {
+        setError("Gagal terhubung ke server");
+        setLoading(false);
+      });
+  }, [id, shouldAutoGenerate]);
+
+  const executeGeneratePrdApi = async () => {
+    const res = await fetch(`/api/plans/${id}/generate-prd`, {
+      method: "POST",
+      headers: { ...getAiHeaders() }
+    });
+    return await res.json();
+  };
 
   if (loading) {
     return (
@@ -48,23 +73,43 @@ export default function PrdStudioPage({ params }: { params: Promise<{ id: string
     );
   }
 
-  if (error || !prd) {
+  // Live Streaming PRD Generation Screen with visual effects
+  if (generating || (!prd && !error)) {
+    return (
+      <div className="h-screen max-h-screen bg-dot-grid text-gray-100 flex flex-col overflow-hidden">
+        <Navbar currentPlanId={id} />
+        <main className="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
+          <LivePrdGeneratorView
+            planName={plan?.name || "App Specification"}
+            generateApiCall={executeGeneratePrdApi}
+            onFinished={(newPrd) => {
+              setPrd(newPrd);
+              setGenerating(false);
+            }}
+            onError={(msg) => {
+              setError(msg);
+              setGenerating(false);
+            }}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
     return (
       <div className="h-screen bg-dot-grid text-gray-100 flex flex-col">
         <Navbar currentPlanId={id} />
         <main className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <p className="text-sm text-red-400 mb-4">{error || "Dokumen PRD belum dibuat."}</p>
+          <p className="text-sm text-red-400 mb-4">{error}</p>
           <button
             onClick={() => {
-              setLoading(true);
-              fetch(`/api/plans/${id}/generate-prd`, { method: "POST" })
-                .then((res) => res.json())
-                .then((data) => setPrd(data.prd))
-                .finally(() => setLoading(false));
+              setError("");
+              setGenerating(true);
             }}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs"
+            className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all"
           >
-            Generate PRD Sekarang
+            Coba Buat PRD Kembali
           </button>
         </main>
       </div>
@@ -79,7 +124,7 @@ export default function PrdStudioPage({ params }: { params: Promise<{ id: string
         <PrdSplitView
           planId={id}
           planName={plan?.name || "App Idea"}
-          initialMarkdown={prd.contentMarkdown}
+          initialMarkdown={prd?.contentMarkdown || ""}
           features={features}
           tasks={tasks}
         />
