@@ -35,7 +35,7 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
   const [prdMarkdown, setPrdMarkdown] = useState("");
   const [mobileFilter, setMobileFilter] = useState<string>("all");
 
-  const fetchTasks = async () => {
+  const fetchTasks = async (isSilent = false) => {
     try {
       const res = await fetch(`/api/plans/${id}`);
       const data = await res.json();
@@ -47,14 +47,20 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
         }
       }
     } catch {
-      setError("Gagal memuat task");
+      if (!isSilent) setError("Gagal memuat task");
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchTasks(false);
+    // Auto-poll every 2.5 seconds for live realtime updates from CLI Agent
+    const interval = setInterval(() => {
+      fetchTasks(true);
+    }, 2500);
+
+    return () => clearInterval(interval);
   }, [id]);
 
   const handleGenerateTasks = async () => {
@@ -132,6 +138,10 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400 mb-1">
               <Terminal className="w-4 h-4" />
               <span>PHASE 03 // TASK KANBAN BOARD</span>
+              <span className="px-2 py-0.5 rounded text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-800/80 flex items-center gap-1.5 font-mono ml-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>LIVE REALTIME</span>
+              </span>
             </div>
             <h1 className="text-base sm:text-lg font-extrabold text-gray-100">
               {plan?.name || "Rencana Application"}
@@ -163,7 +173,7 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
 
                 {/* Refresh Status Button */}
                 <button
-                  onClick={fetchTasks}
+                  onClick={() => fetchTasks(false)}
                   className="px-3.5 py-2 rounded-xl bg-gray-900 border border-white/[0.08] text-xs font-semibold font-mono text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-1.5"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
