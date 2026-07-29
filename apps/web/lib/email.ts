@@ -54,7 +54,9 @@ export async function sendOtpEmail({
 
   // 2. Check if SMTP configuration exists (Hostinger Email / AWS SES / Custom SMTP)
   const smtpHost = config?.smtpHost || process.env.SMTP_HOST;
-  const smtpPort = parseInt(config?.smtpPort || process.env.SMTP_PORT || "465");
+  const rawPort = config?.smtpPort || process.env.SMTP_PORT || "465";
+  const parsedPort = parseInt(rawPort, 10);
+  const smtpPort = isNaN(parsedPort) ? 465 : parsedPort;
   const smtpUser = config?.smtpUser || process.env.SMTP_USER;
   const smtpPass = config?.smtpPass || process.env.SMTP_PASS;
 

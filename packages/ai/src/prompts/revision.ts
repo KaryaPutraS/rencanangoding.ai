@@ -28,11 +28,22 @@ Tugas Anda:
       });
 
       const responseText = result.text;
-      const match = responseText.match(/```markdown([\s\S]*?)```/);
-      const updatedPrd = match ? match[1].trim() : undefined;
+      // Match from ```markdown to the LAST closing ``` to support nested code/mermaid blocks
+      const startIndex = responseText.indexOf("```markdown");
+      let updatedPrd: string | undefined;
+      let replyText = responseText;
+
+      if (startIndex !== -1) {
+        const contentAfterStart = responseText.slice(startIndex + "```markdown".length);
+        const lastEndIndex = contentAfterStart.lastIndexOf("```");
+        if (lastEndIndex !== -1) {
+          updatedPrd = contentAfterStart.slice(0, lastEndIndex).trim();
+          replyText = (responseText.slice(0, startIndex) + contentAfterStart.slice(lastEndIndex + 3)).trim();
+        }
+      }
 
       return {
-        replyText: responseText.replace(/```markdown[\s\S]*?```/g, "").trim() || "PRD berhasil diperbarui sesuai instruksi Anda.",
+        replyText: replyText || "PRD berhasil diperbarui sesuai instruksi Anda.",
         updatedPrd
       };
     } catch (err) {

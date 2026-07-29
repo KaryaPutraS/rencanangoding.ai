@@ -15,7 +15,8 @@ export async function POST(req: Request) {
     }
 
     const { email, otpCode, password } = parsed.data;
-    const { user, token } = await dbStore.createPasswordAndRegister(email, otpCode, password, body.name);
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const { user, token } = await dbStore.createPasswordAndRegister(email, otpCode, password, name);
 
     const response = NextResponse.json({
       success: true,
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "Gagal membuat password" },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }

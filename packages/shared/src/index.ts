@@ -115,7 +115,7 @@ export interface AiChatMessage {
 // Schemas for API payloads
 export const CreatePlanSchema = z.object({
   rawIdea: z.string().min(5, "Ide terlalu pendek, tuliskan lebih detail (min. 5 karakter)"),
-  outputLanguage: z.string().default("id"),
+  outputLanguage: z.enum(["id", "en", "es", "ja"]).default("id"),
   techPreference: TechPreferenceEnum.default("ai_choice"),
   manualTechStack: z.array(z.string()).optional()
 });

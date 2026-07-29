@@ -130,19 +130,25 @@ taskCmd
 
     try {
       const res = await fetch(`${getApiUrl()}/api/cli/plans/${planId}/task-next`);
+      if (!res.ok) {
+        console.error(`Error (${res.status}): Gagal mengambil task next dari server.`);
+        return;
+      }
       const data = await res.json();
 
       if (options.json) {
         console.log(JSON.stringify(data, null, 2));
       } else {
         if (data.done) {
-          console.log(`🎉 ${data.message}`);
-        } else {
-          if (data.checkpoint) {
+          console.log(`🎉 ${data.message || "Semua task selesai!"}`);
+        } else if (data.task) {
+          if (data.checkpoint && data.message) {
             console.log(`\n${data.message}\n`);
           }
           console.log(`Task berikutnya: [${data.task.ref}] ${data.task.title}`);
           console.log(`Layer: ${data.task.layer} | Phase: ${data.task.phase}`);
+        } else {
+          console.log(JSON.stringify(data, null, 2));
         }
       }
     } catch (err: any) {
@@ -158,10 +164,18 @@ taskCmd
   .action(async (ref, options) => {
     const config = loadConfig();
     const planId = options.plan || config.activePlanId;
+    if (!planId) {
+      console.error("Error: --plan <plan_id> diperlukan atau login/active plan belum di-set");
+      process.exit(1);
+    }
     try {
       const res = await fetch(`${getApiUrl()}/api/cli/tasks/${ref}/start?planId=${planId}`, {
         method: "POST"
       });
+      if (!res.ok) {
+        console.error(`Error (${res.status}): Gagal update task start.`);
+        return;
+      }
       const data = await res.json();
       console.log(`Task ${ref} status: dikerjakan`);
     } catch (err: any) {
@@ -177,10 +191,18 @@ taskCmd
   .action(async (ref, options) => {
     const config = loadConfig();
     const planId = options.plan || config.activePlanId;
+    if (!planId) {
+      console.error("Error: --plan <plan_id> diperlukan atau login/active plan belum di-set");
+      process.exit(1);
+    }
     try {
       const res = await fetch(`${getApiUrl()}/api/cli/tasks/${ref}/complete?planId=${planId}`, {
         method: "POST"
       });
+      if (!res.ok) {
+        console.error(`Error (${res.status}): Gagal update task complete.`);
+        return;
+      }
       const data = await res.json();
       console.log(`Task ${ref} status: selesai`);
     } catch (err: any) {
@@ -196,12 +218,20 @@ taskCmd
   .action(async (ref, reason, options) => {
     const config = loadConfig();
     const planId = options.plan || config.activePlanId;
+    if (!planId) {
+      console.error("Error: --plan <plan_id> diperlukan atau login/active plan belum di-set");
+      process.exit(1);
+    }
     try {
       const res = await fetch(`${getApiUrl()}/api/cli/tasks/${ref}/fail?planId=${planId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: reason || "Task gagal dieksekusi" })
       });
+      if (!res.ok) {
+        console.error(`Error (${res.status}): Gagal update task fail.`);
+        return;
+      }
       const data = await res.json();
       console.log(`Task ${ref} status: gagal`);
     } catch (err: any) {

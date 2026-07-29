@@ -237,7 +237,7 @@ function FlowContent({ planName, features, tasks = [], showTasks = true, onGener
 
         const subTitle = sub.name || (sub as any).title || "SubFeature";
         const relatedTasks = tasks.filter(
-          (t) => t.subFeatureId === sub.id || (t.title && subTitle && t.title.toLowerCase().includes(subTitle.toLowerCase()))
+          (t) => (Boolean(sub.id) && t.subFeatureId === sub.id) || (t.title && subTitle && t.title.toLowerCase().includes(subTitle.toLowerCase()))
         );
 
         generatedNodes.push({
@@ -262,7 +262,7 @@ function FlowContent({ planName, features, tasks = [], showTasks = true, onGener
         // Tasks Breakdown Nodes
         if (showTasks && relatedTasks.length > 0) {
           relatedTasks.forEach((task, tIdx) => {
-            const taskNodeId = `task-${task.id || tIdx}`;
+            const taskNodeId = `task-${subNodeId}-${task.id || tIdx}`;
             const taskY = subY + (tIdx - (relatedTasks.length - 1) / 2) * 55;
 
             generatedNodes.push({

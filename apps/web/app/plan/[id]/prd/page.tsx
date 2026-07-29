@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { PrdSplitView } from "@/components/prd/PrdSplitView";
@@ -9,8 +9,7 @@ import { FeatureNode, TaskItem, Plan, PrdDocument } from "@rencanangoding/shared
 import { getAiHeaders } from "@/lib/useSettings";
 import { Loader2 } from "lucide-react";
 
-export default function PrdStudioPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function PrdStudioContent({ id }: { id: string }) {
   const searchParams = useSearchParams();
   const shouldAutoGenerate = searchParams.get("autoGenerate") === "true";
 
@@ -130,5 +129,21 @@ export default function PrdStudioPage({ params }: { params: Promise<{ id: string
         />
       </main>
     </div>
+  );
+}
+
+export default function PrdStudioPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen bg-dot-grid text-gray-100 flex flex-col items-center justify-center">
+          <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mb-4" />
+        </div>
+      }
+    >
+      <PrdStudioContent id={id} />
+    </Suspense>
   );
 }

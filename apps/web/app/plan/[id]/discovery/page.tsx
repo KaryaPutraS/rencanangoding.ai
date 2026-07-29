@@ -145,14 +145,14 @@ export default function DiscoveryPage({ params }: { params: Promise<{ id: string
           <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
             <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
               <Terminal className="w-3.5 h-3.5" />
-              <span>PHASE 01 // DISCOVERY WIZARD ({currentIndex + 1}/5)</span>
+              <span>PHASE 01 // DISCOVERY WIZARD ({currentIndex + 1}/{questions.length || 5})</span>
             </span>
-            <span>{Math.round(((currentIndex + 1) / 5) * 100)}% COMPLETE</span>
+            <span>{Math.round(((currentIndex + 1) / (questions.length || 5)) * 100)}% COMPLETE</span>
           </div>
           <div className="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden border border-white/[0.08]">
             <div
               className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 transition-all duration-300 rounded-full"
-              style={{ width: `${((currentIndex + 1) / 5) * 100}%` }}
+              style={{ width: `${((currentIndex + 1) / (questions.length || 5)) * 100}%` }}
             />
           </div>
         </div>

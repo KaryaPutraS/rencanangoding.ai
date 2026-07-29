@@ -21,9 +21,17 @@ export async function POST(req: Request) {
     const { email } = parsed.data;
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check rate limit cooldown
-    const lastRequest = otpCooldownMap.get(cleanEmail);
+    // Check rate limit cooldown & prune expired entries
     const now = Date.now();
+    if (otpCooldownMap.size > 100) {
+      otpCooldownMap.forEach((timestamp, key) => {
+        if (now - timestamp > 60 * 1000) {
+          otpCooldownMap.delete(key);
+        }
+      });
+    }
+
+    const lastRequest = otpCooldownMap.get(cleanEmail);
     if (lastRequest && now - lastRequest < 45 * 1000) {
       const waitSeconds = Math.ceil((45 * 1000 - (now - lastRequest)) / 1000);
       return NextResponse.json(

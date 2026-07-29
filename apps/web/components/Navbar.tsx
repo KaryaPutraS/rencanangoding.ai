@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { SupportedLanguages, Plan } from "@rencanangoding/shared";
+import { Plan } from "@rencanangoding/shared";
 import { Terminal, Globe, FolderGit2, Plus, Code2, Settings, Trash2, Cpu, UserCheck, LogOut, Lock } from "lucide-react";
 import { SettingsModal } from "./SettingsModal";
 import { TunnelStatusModal } from "./TunnelStatusModal";

@@ -90,7 +90,12 @@ class PersistentDataStore {
         Object.entries(data.sessions || {}).forEach(([k, v]) => this.sessionsMap.set(k, v));
       }
     } catch (err) {
-      console.warn("Could not load store from disk:", err);
+      console.error("Could not load store from disk, backing up corrupted file:", err);
+      try {
+        if (fs.existsSync(STORE_FILE)) {
+          fs.copyFileSync(STORE_FILE, `${STORE_FILE}.corrupt.${Date.now()}.bak`);
+        }
+      } catch {}
     }
   }
 
@@ -149,8 +154,8 @@ class PersistentDataStore {
 
   async requestOtp(email: string): Promise<{ code: string; expiresAt: number; isExistingUser: boolean }> {
     const cleanEmail = email.toLowerCase().trim();
-    // Generate 6 digit numeric code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Cryptographically secure 6 digit numeric code
+    const code = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
     const isExistingUser = this.usersMap.has(cleanEmail);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, MessageSquare, Send, Sparkles, Loader2, Bot, User, Check, RefreshCw, Zap } from "lucide-react";
+import { X, MessageSquare, Send, Loader2, Bot, User } from "lucide-react";
 import { getAiHeaders } from "@/lib/useSettings";
 
 interface StructureRevisionChatProps {
