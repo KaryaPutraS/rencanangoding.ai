@@ -4,9 +4,10 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { ReactFlowMindMap } from "@/components/mindmap/ReactFlowMindMap";
+import { StructureRevisionChat } from "@/components/structure/StructureRevisionChat";
 import { FeatureNode, Plan } from "@rencanangoding/shared";
 import { getAiHeaders } from "@/lib/useSettings";
-import { Sparkles, ArrowRight, Loader2, RefreshCw, FileText } from "lucide-react";
+import { Sparkles, ArrowRight, Loader2, RefreshCw, FileText, MessageSquare } from "lucide-react";
 
 export default function StructurePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -16,6 +17,7 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
   const [features, setFeatures] = useState<FeatureNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingPrd, setGeneratingPrd] = useState(false);
+  const [showRevisionChat, setShowRevisionChat] = useState(false);
   const [error, setError] = useState("");
 
   const triggerGenerateStructure = async () => {
@@ -112,37 +114,52 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
     <div className="h-screen max-h-screen bg-dot-grid text-gray-100 flex flex-col overflow-hidden">
       <Navbar currentPlanId={id} />
 
-      <main className="flex-1 p-4 lg:p-6 flex flex-col w-full space-y-3 overflow-hidden min-h-0">
-        {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 tech-panel p-3.5 px-5 rounded-2xl border border-white/[0.08] shrink-0">
+      <main className="flex-1 p-3 sm:p-4 lg:p-6 flex flex-col w-full space-y-3 overflow-hidden min-h-0">
+        {/* Top Header Controls Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 tech-panel p-3 sm:px-5 rounded-2xl border border-white/[0.08] shrink-0">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 mb-0.5">
               <Sparkles className="w-4 h-4" />
               <span>Struktur & Mind Map Fitur</span>
             </div>
-            <h1 className="text-base font-extrabold text-gray-100 truncate max-w-xl">
+            <h1 className="text-sm sm:text-base font-extrabold text-gray-100 truncate max-w-xl">
               {plan?.name || "Rencana Application"}
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* AI Revision Chat Toggle Button */}
             <button
-              onClick={triggerGenerateStructure}
-              className="px-3.5 py-2 rounded-xl bg-gray-900 border border-gray-800 text-xs font-semibold text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+              onClick={() => setShowRevisionChat(!showRevisionChat)}
+              className={`px-3 py-2 rounded-xl border text-xs font-bold font-mono transition-all flex items-center gap-1.5 ${
+                showRevisionChat
+                  ? "bg-cyan-950 text-cyan-300 border-cyan-500 shadow-lg shadow-cyan-500/20"
+                  : "bg-gray-900 hover:bg-gray-800 border-white/[0.1] text-cyan-400"
+              }`}
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Regenerate Mind Map</span>
+              <MessageSquare className="w-4 h-4 text-cyan-400" />
+              <span>Revisi AI</span>
             </button>
 
+            {/* Regenerate Structure Button */}
+            <button
+              onClick={triggerGenerateStructure}
+              className="px-3 py-2 rounded-xl bg-gray-900 border border-white/[0.08] text-xs font-medium text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Regenerate Mind Map</span>
+            </button>
+
+            {/* Proceed to PRD Studio Button */}
             <button
               onClick={handleGeneratePrd}
               disabled={generatingPrd}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 hover:scale-105"
+              className="px-4 sm:px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-1.5 hover:scale-105"
             >
               {generatingPrd ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Menulis Dokumen PRD...</span>
+                  <span>Menulis PRD...</span>
                 </>
               ) : (
                 <>
@@ -163,7 +180,7 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
         )}
 
         {/* Full Screen React Flow Mind Map View */}
-        <div className="flex-1 w-full h-full min-h-0 overflow-hidden">
+        <div className="flex-1 w-full h-full min-h-0 overflow-hidden relative">
           <ReactFlowMindMap
             planName={plan?.name || "App Idea"}
             features={features}
@@ -171,6 +188,14 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
           />
         </div>
       </main>
+
+      {/* AI Structure Revision Chat Drawer */}
+      <StructureRevisionChat
+        planId={id}
+        isOpen={showRevisionChat}
+        onClose={() => setShowRevisionChat(false)}
+        onStructureUpdated={(newFeatures) => setFeatures(newFeatures)}
+      />
     </div>
   );
 }

@@ -10,11 +10,12 @@ import {
   Edge,
   Position,
   Handle,
-  ReactFlowProvider
+  ReactFlowProvider,
+  useReactFlow
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { FeatureNode, TaskItem } from "@rencanangoding/shared";
-import { Layers, ChevronDown, ChevronRight, Zap, Terminal, Code2, ShieldCheck } from "lucide-react";
+import { Layers, ChevronDown, ChevronRight, Zap, Terminal, Code2, ShieldCheck, ZoomIn, ZoomOut, Maximize2, Sparkles, MapPin } from "lucide-react";
 
 interface MindMapProps {
   planName: string;
@@ -27,7 +28,7 @@ interface MindMapProps {
 // Custom Node for Root Idea (Obsidian Technical Theme)
 function RootNode({ data }: { data: { label: string } }) {
   return (
-    <div className="px-5 py-4 rounded-2xl bg-gray-950/95 text-white font-bold text-xs shadow-2xl border border-emerald-500/60 max-w-[250px] text-center backdrop-blur-md">
+    <div className="px-5 py-4 rounded-2xl bg-gray-950/95 text-white font-bold text-xs shadow-2xl border border-emerald-500/60 max-w-[260px] text-center backdrop-blur-md">
       <div className="flex items-center justify-center gap-1.5 mb-1.5 text-[9px] font-mono text-emerald-400 uppercase tracking-widest">
         <Terminal className="w-3.5 h-3.5 text-emerald-400" />
         <span>SYSTEM ROOT // APP SPECS</span>
@@ -117,18 +118,81 @@ const nodeTypes = {
   taskNode: TaskCustomNode
 };
 
+// Custom Bottom Right Control Panel & Legend
+function MindMapControlWidget({ totalFeatures, totalSubFeatures }: { totalFeatures: number; totalSubFeatures: number }) {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+
+  return (
+    <div className="absolute bottom-4 right-4 z-30 flex flex-col items-end gap-2.5 pointer-events-auto">
+      {/* Sleek Technical Legend & Stats Card */}
+      <div className="tech-panel p-3 sm:p-3.5 rounded-2xl border border-white/[0.1] shadow-2xl space-y-2 backdrop-blur-md text-xs font-mono max-w-[260px] sm:max-w-none">
+        <div className="flex items-center justify-between gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-wider pb-1.5 border-b border-white/[0.08]">
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <Sparkles className="w-3 h-3" />
+            <span>PETUNJUK MIND MAP</span>
+          </span>
+          <span className="text-gray-300 font-bold">{totalFeatures} Fase • {totalSubFeatures} Sub</span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/50 text-emerald-300">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="truncate">Root</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-cyan-950/60 border border-cyan-800/50 text-cyan-300">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+            <span className="truncate">Fase</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-950/60 border border-amber-800/50 text-amber-300">
+            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+            <span className="truncate">Sub-Fitur</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Action Zoom Controls */}
+      <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-950/90 border border-white/[0.1] shadow-xl text-xs font-mono text-gray-300">
+        <button
+          onClick={() => zoomIn()}
+          title="Zoom In (+)"
+          className="p-2 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+        >
+          <ZoomIn className="w-4 h-4 text-emerald-400" />
+        </button>
+        <button
+          onClick={() => zoomOut()}
+          title="Zoom Out (-)"
+          className="p-2 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+        >
+          <ZoomOut className="w-4 h-4 text-cyan-400" />
+        </button>
+        <button
+          onClick={() => fitView({ padding: 0.15 })}
+          title="Fit Mind Map View"
+          className="p-2 rounded-lg hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-1 font-bold text-[11px]"
+        >
+          <Maximize2 className="w-4 h-4 text-amber-400" />
+          <span className="hidden sm:inline">Reset View</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function FlowContent({ planName, features, tasks = [], showTasks = true, onGenerateRequested }: MindMapProps) {
-  const { nodes, edges } = useMemo(() => {
+  const { nodes, edges, totalFeatures, totalSubFeatures } = useMemo(() => {
     const generatedNodes: Node[] = [];
     const generatedEdges: Edge[] = [];
 
-    let totalSubFeatures = 0;
+    let subCountTotal = 0;
     features.forEach((f) => {
-      totalSubFeatures += Math.max(1, (f.subFeatures || []).length);
+      subCountTotal += Math.max(1, (f.subFeatures || []).length);
     });
 
     const ROW_GAP = 135;
-    const totalHeight = totalSubFeatures * ROW_GAP;
+    const totalHeight = subCountTotal * ROW_GAP;
     let currentY = -totalHeight / 2;
 
     // Root Node
@@ -227,7 +291,12 @@ function FlowContent({ planName, features, tasks = [], showTasks = true, onGener
       currentY += featureHeight;
     });
 
-    return { nodes: generatedNodes, edges: generatedEdges };
+    return {
+      nodes: generatedNodes,
+      edges: generatedEdges,
+      totalFeatures: features.length,
+      totalSubFeatures: subCountTotal
+    };
   }, [planName, features, tasks, showTasks]);
 
   return (
@@ -245,17 +314,7 @@ function FlowContent({ planName, features, tasks = [], showTasks = true, onGener
         className="w-full h-full"
       >
         <Background color="#1E293B" gap={24} size={1} />
-        <Controls position="bottom-right" className="!m-4 shadow-2xl" />
-        <MiniMap
-          nodeColor={(n) => {
-            if (n.type === "rootNode") return "#10B981";
-            if (n.type === "featureNode") return "#06B6D4";
-            if (n.type === "subFeatureNode") return "#F59E0B";
-            return "#64748B";
-          }}
-          maskColor="rgba(7, 9, 14, 0.8)"
-          className="!bg-gray-950 !border !border-white/[0.08] !rounded-xl hidden sm:block"
-        />
+        <MindMapControlWidget totalFeatures={totalFeatures} totalSubFeatures={totalSubFeatures} />
       </ReactFlow>
     </div>
   );

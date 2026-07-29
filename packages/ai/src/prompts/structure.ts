@@ -23,7 +23,8 @@ export async function generateFeatureStructure(
   idea: string,
   answersSummary: string,
   language: string = "id",
-  config?: AiConfig
+  config?: AiConfig,
+  revisionPrompt?: string
 ): Promise<FeatureNode[]> {
   const modelInfo = getAiModel(config);
 
@@ -37,8 +38,7 @@ User memiliki ide aplikasi: "${idea}"
 Konteks tambahan dari discovery: "${answersSummary}"
 Bahasa output: ${language === "id" ? "Bahasa Indonesia" : "English"}
 
-Buatkan breakdown mind map fitur komprehensif yang terbagi ke dalam minimal 3 Fase (Fase 1: MVP Core, Fase 2: Enhancements & Integrations, Fase 3: Scale & Analytics).
-Tiap fase memiliki 2-4 fitur utama, dan tiap fitur utama memiliki 2-5 sub-fitur dengan deskripsi jelas.`
+${revisionPrompt ? `INSTRUKSI REVISI DARI USER: "${revisionPrompt}"\nMohon sesuaikan struktur fitur (fase, fitur utama, dan sub-fitur) mengikuti permintaan revisi di atas.` : "Buatkan breakdown mind map fitur komprehensif yang terbagi ke dalam minimal 3 Fase (Fase 1: MVP Core, Fase 2: Enhancements & Integrations, Fase 3: Scale & Analytics). Tiap fase memiliki 2-4 fitur utama, dan tiap fitur utama memiliki 2-5 sub-fitur dengan deskripsi jelas."}`
       });
 
       return result.object.features.map((f, fIdx) => {

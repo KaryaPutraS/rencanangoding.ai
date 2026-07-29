@@ -15,6 +15,14 @@ export async function POST(
 ) {
   const { id } = await props.params;
 
+  let revisionPrompt: string | undefined = undefined;
+  try {
+    const body = await req.json();
+    if (body && typeof body.revisionPrompt === "string") {
+      revisionPrompt = body.revisionPrompt;
+    }
+  } catch {}
+
   const plan = await dbStore.getPlan(id);
   if (!plan) {
     return NextResponse.json({ success: false, error: "Plan tidak ditemukan" }, { status: 404 });
@@ -28,7 +36,8 @@ export async function POST(
     plan.rawIdea,
     answersSummary,
     plan.outputLanguage,
-    aiConfig
+    aiConfig,
+    revisionPrompt
   );
 
   const featuresWithPlanId = generatedFeatures.map((f) => ({
