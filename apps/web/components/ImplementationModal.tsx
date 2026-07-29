@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileCode, Terminal, Copy, Check, ShieldAlert, X, Sparkles, Link, ExternalLink } from "lucide-react";
+import { Download, FileCode, Terminal, Copy, Check, ShieldAlert, X, Sparkles, Zap, Layers, PlayCircle } from "lucide-react";
 import { FeatureNode, TaskItem } from "@rencanangoding/shared";
 
 interface ImplementationModalProps {
@@ -23,15 +23,53 @@ export function ImplementationModal({
   features = [],
   tasks = []
 }: ImplementationModalProps) {
-  const [copied, setCopied] = useState(false);
-  const [copiedLinkCmd, setCopiedLinkCmd] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(false);
 
   if (!isOpen) return null;
 
   const cliToken = `rng_${planId.slice(0, 12)}_${Date.now().toString(36)}`;
-  const globalCmd = `rencanangoding login --token ${cliToken} && rencanangoding plan get ${planId} && rencanangoding task next --plan ${planId}`;
-  const npxGithubCmd = `npx github:KaryaPutraS/rencanangoding.ai#main login --token ${cliToken} && npx github:KaryaPutraS/rencanangoding.ai#main plan get ${planId} && npx github:KaryaPutraS/rencanangoding.ai#main task next --plan ${planId}`;
-  const linkCommand = `cd "c:\\Users\\akuns\\Downloads\\google rencanangoding.ai\\apps\\cli" && npm link`;
+  const serverUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:7518";
+
+  // Single comprehensive 1-click instruction prompt for AI Agents (OpenCode, Claude Code, Cursor, Kimi, DeepSeek)
+  const fullAgentPrompt = `Kamu akan mengerjakan task dari RencanaNgoding.ai lewat CLI \`npx rencanangoding\` (atau \`npx github:KaryaPutraS/rencanangoding.ai#main\`).
+
+Prasyarat: Node.js (cek \`node -v\`). CLI otomatis ter-download saat dijalankan via npx — tidak perlu install manual. (Opsional: \`cd apps/cli && npm link\` untuk akses tanpa npx).
+
+Langkah 1 — login + pasang skill (sekali saja):
+npx rencanangoding login --token ${cliToken}    # simpan token (tanpa browser)
+npx rencanangoding init     # pasang skill "rencanangoding" ke agent (auto-load)
+
+Langkah 2 — baca PRD dulu (konteks proyek, sekali saja):
+npx rencanangoding plan get ${planId}    # PRD lengkap → tujuan, fitur, tech stack
+
+Langkah 3 — LOOP: kerjakan SATU task per satu, BERHENTI tiap ganti fase/layer.
+Server yang pilih task berikutnya (frontend & HALAMAN PERTAMA diselesaikan dulu di atas data tiruan/stub; backend menyusul). Kamu TIDAK perlu lihat seluruh backlog.
+INGAT \`layer\` (frontend/backend) & \`phase.current\` task yang BARU kamu selesaikan.
+
+Ulangi siklus ini:
+  npx rencanangoding task next --plan ${planId} --json   # SATU task berikutnya
+      # respons: { done, task:{ref,title,...}, progress:{ phase:{current,total}, layer, page, ... } }
+      # kerjakan dari title + PRD + baca kode; TAK ADA field prompt/description.
+      # kalau "done": true → SEMUA task selesai. BERHENTI & lapor ke user.
+      #
+      # ⛔ CHECKPOINT (SEBELUM \`task start\`): bandingkan \`progress\` task ini dengan
+      #    task yang BARUSAN selesai. Kalau \`layer\` BEDA (mis. frontend→backend)
+      #    ATAU \`phase.current\` NAIK → JANGAN mulai. BERHENTI, lapor apa yang beres
+      #    (mis. "✅ Frontend fase 1 selesai — coba klik-klik dulu di browser"), lalu
+      #    TUNGGU user bilang "lanjut". \`task next\` PERTAMA di sesi ini (belum ada
+      #    task sebelumnya) BUKAN checkpoint → langsung kerjakan.
+  npx rencanangoding task start <ref> --plan ${planId}                     # tandai mulai
+  → kerjakan HANYA task ini sampai kelar (eksplor kode dulu, ikuti polanya).
+    JANGAN sentuh task lain / baca task lain dulu.
+  npx rencanangoding task complete <ref> --plan ${planId}                  # tandai selesai
+  → balik ke \`task next\` untuk task berikutnya.
+
+Kalau ke-block: npx rencanangoding task fail <ref> "alasan singkat" --plan ${planId} lalu lanjut \`task next\`.
+
+Kenapa berhenti tiap fase/layer: user bisa verifikasi hasil tiap layer (mis. klik-klik UI frontend di atas data tiruan) sebelum agent lanjut ke backend / fase berikutnya.
+Kenapa satu-per-satu: tiap task dapat konteks bersih & fokus penuh → hasil lebih tajam.
+Percayakan urutan ke \`task next\` — jangan borong banyak task sekaligus.`;
 
   const downloadPrdFile = () => {
     const blob = new Blob([prdMarkdown], { type: "text/markdown;charset=utf-8" });
@@ -61,20 +99,15 @@ export function ImplementationModal({
     URL.revokeObjectURL(url);
   };
 
-  const handleCopyPrompt = (textToCopy: string, isLink: boolean = false) => {
-    navigator.clipboard.writeText(textToCopy);
-    if (isLink) {
-      setCopiedLinkCmd(true);
-      setTimeout(() => setCopiedLinkCmd(false), 2500);
-    } else {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    }
+  const copyFullPrompt = () => {
+    navigator.clipboard.writeText(fullAgentPrompt);
+    setCopiedPrompt(true);
+    setTimeout(() => setCopiedPrompt(false), 2500);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="tech-panel w-full max-w-2xl rounded-3xl p-6 border border-white/[0.08] shadow-2xl relative space-y-5 max-h-[90vh] overflow-y-auto">
+      <div className="tech-panel w-full max-w-3xl rounded-3xl p-6 border border-white/[0.1] shadow-2xl relative space-y-5 max-h-[92vh] overflow-y-auto">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -85,122 +118,88 @@ export function ImplementationModal({
 
         {/* Modal Header */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gray-900 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-lg">
+          <div className="w-10 h-10 rounded-2xl bg-gray-900 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/10">
             <Terminal className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-100">Mulai Eksekusi CLI Agent</h2>
-            <p className="text-xs text-gray-400">Pilih metode eksekusi sesuai workflow AI Agent pilihan kamu</p>
+            <div className="flex items-center gap-2 font-mono text-[10px] text-emerald-400 uppercase tracking-widest">
+              <Zap className="w-3.5 h-3.5" />
+              <span>ONE-CLICK AI AGENT EXECUTION PROMPT</span>
+            </div>
+            <h2 className="text-lg font-bold text-gray-100">Eksekusi Otomatis AI Agent</h2>
           </div>
         </div>
 
-        {/* 3 Options */}
+        {/* 3 Quick Download / Prompt Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Option 1: Download PRD */}
+          {/* Option 1: Copy Full Prompt */}
           <button
-            onClick={downloadPrdFile}
-            className="p-4 rounded-2xl bg-gray-900/80 border border-white/[0.08] hover:border-emerald-500/40 hover:bg-gray-800/60 text-left transition-all group flex flex-col justify-between"
+            onClick={copyFullPrompt}
+            className="p-4 rounded-2xl bg-emerald-950/80 border border-emerald-700 hover:border-emerald-400 text-left transition-all group flex flex-col justify-between shadow-lg shadow-emerald-950/40"
           >
             <div>
-              <Download className="w-6 h-6 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xs font-bold text-gray-200">Download PRD</h3>
-              <p className="text-[11px] text-gray-400 mt-1">File dokumen standar format `.md`</p>
+              <Terminal className="w-6 h-6 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
+              <h3 className="text-xs font-bold text-emerald-200">Salin 1-Click Prompt Agent</h3>
+              <p className="text-[11px] text-emerald-300/80 mt-1">Prompt lengkap siap paste ke Claude Code/OpenCode</p>
             </div>
-            <span className="mt-4 text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">
-              Unduh .MD →
+            <span className="mt-3 text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              {copiedPrompt ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedPrompt ? "PROMPT TERSALIN!" : "SALIN PROMPT →"}</span>
             </span>
           </button>
 
-          {/* Option 2: Download ZIP */}
+          {/* Option 2: Download PRD */}
           <button
-            onClick={downloadZipSpec}
+            onClick={downloadPrdFile}
             className="p-4 rounded-2xl bg-gray-900/80 border border-white/[0.08] hover:border-cyan-500/40 hover:bg-gray-800/60 text-left transition-all group flex flex-col justify-between"
           >
             <div>
-              <FileCode className="w-6 h-6 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xs font-bold text-gray-200">Download Spec Bundle</h3>
-              <p className="text-[11px] text-gray-400 mt-1">Paket lengkap PRD + Fitur + Tasks JSON</p>
+              <Download className="w-6 h-6 text-cyan-400 mb-2 group-hover:scale-110 transition-transform" />
+              <h3 className="text-xs font-bold text-gray-200">Download Dokumen PRD</h3>
+              <p className="text-[11px] text-gray-400 mt-1">File dokumen `.md` lengkap</p>
             </div>
-            <span className="mt-4 text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">
-              Unduh JSON →
+            <span className="mt-3 text-[10px] text-cyan-400 font-semibold uppercase tracking-wider">
+              UNDUH .MD →
             </span>
           </button>
 
-          {/* Option 3: CLI Agent Prompt */}
+          {/* Option 3: Download Spec JSON */}
           <button
-            onClick={() => document.getElementById("cli-prompt-section")?.scrollIntoView({ behavior: "smooth" })}
-            className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800 hover:border-emerald-500/60 text-left transition-all group flex flex-col justify-between"
+            onClick={downloadZipSpec}
+            className="p-4 rounded-2xl bg-gray-900/80 border border-white/[0.08] hover:border-amber-500/40 hover:bg-gray-800/60 text-left transition-all group flex flex-col justify-between"
           >
             <div>
-              <Terminal className="w-6 h-6 text-sky-400 mb-2 group-hover:scale-110 transition-transform" />
-              <h3 className="text-xs font-bold text-sky-200">Prompt CLI Agent</h3>
-              <p className="text-[11px] text-emerald-300 mt-1">Siap-pakai untuk Claude Code / Kimi / OpenCode</p>
+              <FileCode className="w-6 h-6 text-amber-400 mb-2 group-hover:scale-110 transition-transform" />
+              <h3 className="text-xs font-bold text-gray-200">Download Spec Bundle</h3>
+              <p className="text-[11px] text-gray-400 mt-1">Paket JSON PRD + Tasks</p>
             </div>
-            <span className="mt-4 text-[10px] text-sky-300 font-semibold uppercase tracking-wider">
-              Lihat Perintah →
+            <span className="mt-3 text-[10px] text-amber-400 font-semibold uppercase tracking-wider">
+              UNDUH JSON →
             </span>
           </button>
         </div>
 
-        {/* Global Link Fix Notice */}
-        <div className="p-3.5 rounded-2xl bg-gray-950 border border-white/[0.08] space-y-2 text-xs">
-          <div className="flex items-center justify-between text-amber-400 font-mono font-bold text-[11px]">
-            <span>💡 TIPS AGAR PERINTAH 'rencanangoding' BISA DIJALANKAN DI FOLDER MANAPUN:</span>
-          </div>
-          <p className="text-gray-300 text-[11px] leading-relaxed">
-            Jalankan perintah ini <span className="font-mono text-emerald-400">1x di Terminal</span> untuk mendaftarkan command CLI <code className="text-emerald-300 font-mono">rencanangoding</code> secara global di komputer kamu:
-          </p>
-          <div className="flex items-center justify-between bg-gray-900 p-2.5 rounded-xl border border-white/[0.08] gap-2">
-            <code className="text-[11px] font-mono text-amber-300 truncate">
-              {linkCommand}
-            </code>
+        {/* Full Single-Prompt Viewer Box */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs text-gray-300 font-semibold">
+            <span className="flex items-center gap-1.5 font-mono text-emerald-400">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Instruksi Perintah 1-Click untuk AI Coding Agent:</span>
+            </span>
+
             <button
-              onClick={() => handleCopyPrompt(linkCommand, true)}
-              className="px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-[10px] font-mono shrink-0 transition-colors"
+              onClick={copyFullPrompt}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold font-mono flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105"
             >
-              {copiedLinkCmd ? "Tersalin!" : "Salin Link Cmd"}
+              {copiedPrompt ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedPrompt ? "Tersalin Ke Clipboard!" : "Salin Perintah Lengkap"}</span>
             </button>
           </div>
-        </div>
 
-        {/* CLI Command Copy Box */}
-        <div id="cli-prompt-section" className="space-y-3">
-          {/* Method 1: Linked Command */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-gray-300 font-semibold">
-              <span className="text-emerald-400 font-mono font-bold">1. Perintah CLI Utama (Jika sudah npm link / global):</span>
-            </div>
-            <div className="p-3 rounded-2xl bg-gray-950 border border-white/[0.08] flex items-center justify-between gap-3">
-              <code className="text-xs font-mono text-emerald-300 truncate flex-1 overflow-x-auto">
-                {globalCmd}
-              </code>
-              <button
-                onClick={() => handleCopyPrompt(globalCmd)}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shrink-0 transition-all"
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copied ? "Tersalin!" : "Salin Perintah"}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Method 2: Direct GitHub NPX Fallback */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-gray-300 font-semibold">
-              <span className="text-cyan-400 font-mono font-bold">2. Perintah NPX Direct GitHub (Tanpa Perlu Setup Local):</span>
-            </div>
-            <div className="p-3 rounded-2xl bg-gray-950 border border-white/[0.08] flex items-center justify-between gap-3">
-              <code className="text-xs font-mono text-cyan-300 truncate flex-1 overflow-x-auto">
-                {npxGithubCmd}
-              </code>
-              <button
-                onClick={() => handleCopyPrompt(npxGithubCmd)}
-                className="px-3 py-1.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shrink-0 transition-all"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>Salin NPX GitHub</span>
-              </button>
-            </div>
+          <div className="rounded-2xl bg-gray-950 border border-white/[0.1] p-4 max-h-60 overflow-y-auto font-mono text-[11px] text-gray-300 space-y-2 leading-relaxed shadow-inner">
+            <pre className="whitespace-pre-wrap font-mono text-emerald-300 selection:bg-emerald-500 selection:text-white">
+              {fullAgentPrompt}
+            </pre>
           </div>
         </div>
       </div>
