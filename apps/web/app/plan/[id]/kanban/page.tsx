@@ -266,11 +266,11 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
 
         {/* Mobile Filter Tabs (Visible on screens < md) */}
         {tasks.length > 0 && (
-          <div className="md:hidden flex items-center gap-1 overflow-x-auto p-1 bg-gray-950/90 rounded-2xl border border-white/[0.08] text-xs">
+          <div className="md:hidden flex items-center gap-1.5 overflow-x-auto p-1.5 bg-gray-950/90 rounded-2xl border border-white/[0.08] text-xs no-scrollbar">
             <button
               onClick={() => setMobileFilter("all")}
-              className={`px-3 py-1.5 rounded-xl font-bold font-mono transition-colors whitespace-nowrap ${
-                mobileFilter === "all" ? "bg-emerald-600 text-white" : "text-gray-400"
+              className={`px-3.5 py-2.5 rounded-xl font-bold font-mono transition-colors whitespace-nowrap min-h-[44px] flex items-center justify-center ${
+                mobileFilter === "all" ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "text-gray-400 hover:text-gray-200"
               }`}
             >
               Semua ({tasks.length})
@@ -281,8 +281,8 @@ export default function KanbanPage({ params }: { params: Promise<{ id: string }>
                 <button
                   key={c.id}
                   onClick={() => setMobileFilter(c.id)}
-                  className={`px-3 py-1.5 rounded-xl font-semibold font-mono transition-colors whitespace-nowrap ${
-                    mobileFilter === c.id ? "bg-emerald-600 text-white" : "text-gray-400"
+                  className={`px-3.5 py-2.5 rounded-xl font-semibold font-mono transition-colors whitespace-nowrap min-h-[44px] flex items-center justify-center ${
+                    mobileFilter === c.id ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20" : "text-gray-400 hover:text-gray-200"
                   }`}
                 >
                   {c.title.split(" ")[0]} ({count})

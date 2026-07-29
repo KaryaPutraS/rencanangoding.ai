@@ -139,11 +139,11 @@ export function TunnelStatusModal({ isOpen, onClose }: TunnelStatusModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-      <div className="tech-panel w-full max-w-xl rounded-3xl p-6 border border-white/[0.08] shadow-2xl relative space-y-6">
+      <div className="tech-panel w-full max-w-xl rounded-3xl p-5 sm:p-6 border border-white/[0.08] shadow-2xl relative space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-gray-800/80 hover:bg-gray-700 text-gray-300 transition-colors"
+          className="absolute top-4 right-4 p-2.5 rounded-full bg-gray-800/80 hover:bg-gray-700 text-gray-300 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
         >
           <X className="w-4 h-4" />
         </button>

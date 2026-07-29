@@ -123,9 +123,9 @@ function MindMapControlWidget({ totalFeatures, totalSubFeatures }: { totalFeatur
   const { zoomIn, zoomOut, fitView } = useReactFlow();
 
   return (
-    <div className="absolute bottom-4 right-4 z-30 flex flex-col items-end gap-2.5 pointer-events-auto">
+    <div className="absolute bottom-20 md:bottom-4 right-3 sm:right-4 z-30 flex flex-col items-end gap-2.5 pointer-events-auto">
       {/* Sleek Technical Legend & Stats Card */}
-      <div className="tech-panel p-3 sm:p-3.5 rounded-2xl border border-white/[0.1] shadow-2xl space-y-2 backdrop-blur-md text-xs font-mono max-w-[260px] sm:max-w-none">
+      <div className="tech-panel p-3 sm:p-3.5 rounded-2xl border border-white/[0.1] shadow-2xl space-y-2 backdrop-blur-md text-xs font-mono max-w-[240px] sm:max-w-none">
         <div className="flex items-center justify-between gap-3 text-[10px] text-gray-400 font-bold uppercase tracking-wider pb-1.5 border-b border-white/[0.08]">
           <span className="flex items-center gap-1.5 text-emerald-400">
             <Sparkles className="w-3 h-3" />
@@ -152,29 +152,28 @@ function MindMapControlWidget({ totalFeatures, totalSubFeatures }: { totalFeatur
         </div>
       </div>
 
-      {/* Quick Action Zoom Controls */}
-      <div className="flex items-center gap-1 p-1 rounded-xl bg-gray-950/90 border border-white/[0.1] shadow-xl text-xs font-mono text-gray-300">
+      {/* Floating Zoom & Canvas Controls */}
+      <div className="flex items-center gap-1.5 tech-panel p-1.5 rounded-xl border border-white/[0.1] shadow-2xl backdrop-blur-md">
         <button
           onClick={() => zoomIn()}
-          title="Zoom In (+)"
-          className="p-2 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+          title="Zoom In / Perbesar"
+          className="p-2.5 sm:p-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
         >
           <ZoomIn className="w-4 h-4 text-emerald-400" />
         </button>
         <button
           onClick={() => zoomOut()}
-          title="Zoom Out (-)"
-          className="p-2 rounded-lg hover:bg-gray-800 hover:text-white transition-colors"
+          title="Zoom Out / Perkecil"
+          className="p-2.5 sm:p-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
         >
           <ZoomOut className="w-4 h-4 text-cyan-400" />
         </button>
         <button
-          onClick={() => fitView({ padding: 0.15 })}
-          title="Fit Mind Map View"
-          className="p-2 rounded-lg hover:bg-gray-800 hover:text-white transition-colors flex items-center gap-1 font-bold text-[11px]"
+          onClick={() => fitView({ padding: 0.2 })}
+          title="Fit View / Reset Tampilan"
+          className="p-2.5 sm:p-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
         >
           <Maximize2 className="w-4 h-4 text-amber-400" />
-          <span className="hidden sm:inline">Reset View</span>
         </button>
       </div>
     </div>

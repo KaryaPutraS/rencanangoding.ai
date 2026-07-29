@@ -95,7 +95,7 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div className="h-screen max-h-screen bg-dot-grid text-gray-100 flex flex-col overflow-hidden">
+    <div className="h-screen max-h-screen bg-dot-grid text-gray-100 flex flex-col overflow-hidden pb-16 md:pb-0">
       <Navbar currentPlanId={id} />
 
       <main className="flex-1 p-3 sm:p-4 lg:p-6 flex flex-col w-full space-y-3 overflow-hidden min-h-0">
@@ -111,11 +111,11 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
             {/* AI Revision Chat Toggle Button */}
             <button
               onClick={() => setShowRevisionChat(!showRevisionChat)}
-              className={`px-3 py-2 rounded-xl border text-xs font-bold font-mono transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-2.5 rounded-xl border text-xs font-bold font-mono transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
                 showRevisionChat
                   ? "bg-cyan-950 text-cyan-300 border-cyan-500 shadow-lg shadow-cyan-500/20"
                   : "bg-gray-900 hover:bg-gray-800 border-white/[0.1] text-cyan-400"
@@ -128,17 +128,18 @@ export default function StructurePage({ params }: { params: Promise<{ id: string
             {/* Regenerate Structure Button */}
             <button
               onClick={triggerGenerateStructure}
-              className="px-3 py-2 rounded-xl bg-gray-900 border border-white/[0.08] text-xs font-medium text-gray-300 hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+              className="px-3 py-2.5 rounded-xl bg-gray-900 border border-white/[0.08] text-xs font-medium text-gray-300 hover:bg-gray-800 transition-colors flex items-center justify-center gap-1.5 min-h-[44px]"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Regenerate Mind Map</span>
+              <span className="sm:hidden text-[11px]">Regen</span>
             </button>
 
             {/* Proceed to PRD Studio Button */}
             <button
               onClick={handleGeneratePrd}
               disabled={generatingPrd}
-              className="px-4 sm:px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-1.5 hover:scale-105"
+              className="col-span-2 sm:col-span-1 px-4 sm:px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 min-h-[44px]"
             >
               {generatingPrd ? (
                 <>

@@ -122,17 +122,17 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
           </div>
 
           {/* Right Action Items */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 overflow-x-auto no-scrollbar max-w-full shrink-0">
             {/* User Auth Profile Badge or Login Button */}
             {user ? (
-              <div className="flex items-center gap-1.5 bg-emerald-950/60 p-1 pl-2.5 rounded-xl border border-emerald-800/60 text-xs">
-                <span className="font-mono text-emerald-300 max-w-[120px] sm:max-w-[160px] truncate font-medium">
+              <div className="flex items-center gap-1.5 bg-emerald-950/60 p-1 pl-2.5 rounded-xl border border-emerald-800/60 text-xs shrink-0">
+                <span className="font-mono text-emerald-300 max-w-[80px] sm:max-w-[160px] truncate font-medium text-[11px] sm:text-xs">
                   {user.email}
                 </span>
                 <button
                   onClick={logout}
                   title="Logout / Keluar"
-                  className="p-1 sm:px-2 py-1 rounded-lg bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-300 transition-colors"
+                  className="p-2 sm:px-2 py-1.5 rounded-lg bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-300 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -140,7 +140,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
             ) : (
               <button
                 onClick={openAuthModal}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-emerald-400 font-mono font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-emerald-400 font-mono font-medium transition-colors min-h-[38px] shrink-0"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>Masuk / OTP</span>
@@ -151,7 +151,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
             <button
               onClick={() => setShowTunnelModal(true)}
               title="Akses Endpoint & Auto Tunnel"
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-mono transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl border text-xs font-mono transition-all min-h-[38px] shrink-0 ${
                 tunnelActive
                   ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-md shadow-emerald-500/20"
                   : "bg-gray-900/80 hover:bg-gray-800 border-white/[0.08] text-gray-300"
@@ -163,17 +163,18 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
             </button>
 
             {/* History Drawer Toggle */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => setShowPlansDropdown(!showPlansDropdown)}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 font-medium transition-colors"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 font-medium transition-colors min-h-[38px]"
               >
                 <FolderGit2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-400" />
                 <span className="hidden sm:inline">Riwayat ({plans.length})</span>
+                <span className="sm:hidden text-[10px] font-mono font-bold text-emerald-400">({plans.length})</span>
               </button>
 
               {showPlansDropdown && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 tech-panel rounded-2xl shadow-2xl p-2 z-50 border border-white/[0.1] animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-xs sm:w-80 tech-panel rounded-2xl shadow-2xl p-2 z-50 border border-white/[0.1] animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
                     <span className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">Daftar Plan Kamu</span>
                     <Link

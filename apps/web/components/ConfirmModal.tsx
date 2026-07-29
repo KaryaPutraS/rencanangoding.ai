@@ -43,7 +43,7 @@ export function ConfirmModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`w-full max-w-md tech-panel p-6 rounded-3xl border shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 ${
+          className={`w-full max-w-md tech-panel p-5 sm:p-6 rounded-3xl border shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar ${
             isDanger
               ? "border-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.15)]"
               : isWarning

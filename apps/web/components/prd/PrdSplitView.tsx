@@ -19,7 +19,10 @@ import {
   Sparkles,
   FileText,
   Network,
-  KanbanSquare
+  KanbanSquare,
+  Layers,
+  ExternalLink,
+  X
 } from "lucide-react";
 import { ReactFlowMindMap } from "../mindmap/ReactFlowMindMap";
 import { RevisionChat } from "./RevisionChat";
@@ -350,9 +353,18 @@ export function PrdSplitView({
           </div>
         </div>
 
-        {/* Middle Column (Optional Chat Drawer) */}
+        {/* Chat Revision Drawer (Fixed Slide-over on mobile, Grid Column on Desktop) */}
         {showChatDrawer && (
-          <div className="lg:col-span-4 h-full overflow-hidden min-h-0 flex flex-col">
+          <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] lg:relative lg:inset-auto lg:z-auto lg:w-auto lg:col-span-4 h-full overflow-hidden min-h-0 flex flex-col tech-panel border-l border-white/[0.1] shadow-2xl animate-in slide-in-from-right duration-300">
+            <div className="lg:hidden flex items-center justify-between p-3 bg-gray-950 border-b border-white/[0.08]">
+              <span className="text-xs font-mono font-bold text-emerald-400">💬 AI REVISI PRD</span>
+              <button
+                onClick={() => setShowChatDrawer(false)}
+                className="p-2 rounded-full bg-gray-900 hover:bg-gray-800 text-gray-300 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
             <RevisionChat
               planId={planId}
               onPrdUpdated={(newMd) => setMarkdown(newMd)}

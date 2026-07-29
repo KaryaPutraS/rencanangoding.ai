@@ -116,7 +116,7 @@ function PrdStudioContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="h-screen max-h-screen bg-dot-grid text-gray-100 flex flex-col overflow-hidden">
+    <div className="h-screen max-h-screen bg-dot-grid text-gray-100 flex flex-col overflow-hidden pb-16 md:pb-0">
       <Navbar currentPlanId={id} />
 
       <main className="flex-1 p-4 lg:p-6 flex flex-col overflow-hidden min-h-0">

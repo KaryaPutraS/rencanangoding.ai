@@ -109,7 +109,7 @@ export default function Home() {
         <div className="w-full tech-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-2xl space-y-6">
           {/* Mandatory Login Notice Banner if not logged in */}
           {!user ? (
-            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex items-center justify-between gap-3 text-xs text-amber-200 animate-in fade-in">
+            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200 animate-in fade-in">
               <div className="flex items-center gap-2.5">
                 <Lock className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>
@@ -119,7 +119,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={openAuthModal}
-                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs shrink-0 transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs shrink-0 transition-colors min-h-[44px] flex items-center justify-center"
               >
                 Masuk / Verifikasi OTP
               </button>
@@ -128,9 +128,9 @@ export default function Home() {
             <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 flex items-center justify-between text-xs text-emerald-300 font-mono">
               <span className="flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-emerald-400" />
-                <span>AKUN TERVERIFIKASI: <strong className="text-white">{user.email}</strong></span>
+                <span>AKUN AKTIF: {user.email}</span>
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-900 text-emerald-200">AKTIF 🟢</span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-900/80 px-2 py-0.5 rounded-md font-bold">VERIFIED</span>
             </div>
           )}
 
@@ -154,7 +154,7 @@ export default function Home() {
               />
 
               {/* Preset Idea Chips */}
-              <div className="pt-1 flex items-center gap-2 overflow-x-auto text-xs">
+              <div className="pt-1 flex items-center gap-2 overflow-x-auto text-xs no-scrollbar py-1">
                 <span className="text-[11px] font-mono text-gray-500 shrink-0">Contoh Ide:</span>
                 {PRESET_IDEAS.map((p, idx) => (
                   <button
@@ -164,7 +164,7 @@ export default function Home() {
                       setIdea(p);
                       if (!user) openAuthModal();
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-gray-900/90 hover:bg-gray-800 border border-white/[0.08] text-[11px] text-gray-300 hover:text-white transition-colors truncate max-w-xs shrink-0"
+                    className="px-3 py-2 rounded-xl bg-gray-900/90 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 hover:text-white transition-colors truncate max-w-xs shrink-0 min-h-[44px] flex items-center"
                   >
                     {p}
                   </button>
