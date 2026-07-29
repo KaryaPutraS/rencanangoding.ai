@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dbStore } from "@rencanangoding/db";
 import { RequestOtpSchema } from "@rencanangoding/shared";
+import { sendOtpEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -17,12 +18,18 @@ export async function POST(req: Request) {
     const { email } = parsed.data;
     const { code, expiresAt, isExistingUser } = await dbStore.requestOtp(email);
 
-    // In open-source self-hosted mode, we return devOtpCode so the user can easily verify without SMTP setup
+    // Attempt real email dispatch via Resend or SMTP
+    const emailResult = await sendOtpEmail({ toEmail: email, otpCode: code });
+
     return NextResponse.json({
       success: true,
-      message: `Kode OTP verifikasi berhasil dibuat untuk ${email}`,
+      message: emailResult.sent
+        ? `Kode OTP terkirim ke ${email} (via ${emailResult.provider})`
+        : `Kode OTP verifikasi berhasil dibuat untuk ${email}`,
       isExistingUser,
-      devOtpCode: code, // Highlighted in UI for zero-config ease of use
+      emailSent: emailResult.sent,
+      // If email dispatch was not configured/failed, expose devOtpCode for seamless open-source usage
+      devOtpCode: emailResult.sent ? undefined : code,
       expiresInMinutes: 10
     });
   } catch (err: any) {
