@@ -20,6 +20,18 @@ export async function POST(req: Request) {
 
     const { email } = parsed.data;
     const cleanEmail = email.toLowerCase().trim();
+    const forceOtp = Boolean(body.forceOtp);
+
+    // Check if user already has password set
+    const hasPassword = await dbStore.hasUserPassword(cleanEmail);
+    if (hasPassword && !forceOtp) {
+      return NextResponse.json({
+        success: true,
+        hasPassword: true,
+        isExistingUser: true,
+        message: "Email terdaftar. Silakan masukkan password kamu untuk login."
+      });
+    }
 
     // Check rate limit cooldown & prune expired entries
     const now = Date.now();

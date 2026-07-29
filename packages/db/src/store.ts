@@ -152,6 +152,11 @@ class PersistentDataStore {
     return { id: dbUser.id, email: dbUser.email, name: dbUser.name, createdAt: dbUser.createdAt };
   }
 
+  async hasUserPassword(email: string): Promise<boolean> {
+    const dbUser = this.usersMap.get(email.toLowerCase().trim());
+    return Boolean(dbUser && dbUser.passwordHash && dbUser.passwordHash.length > 0);
+  }
+
   async requestOtp(email: string): Promise<{ code: string; expiresAt: number; isExistingUser: boolean }> {
     const cleanEmail = email.toLowerCase().trim();
     // Cryptographically secure 6 digit numeric code
