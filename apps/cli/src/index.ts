@@ -69,9 +69,12 @@ program
     console.log("✅ Skill file RencanaNgoding berhasil dipasang di .claude/skills/rencanangoding.md");
   });
 
+// Parent commands
+const planCmd = program.command("plan").description("Kelola plan RencanaNgoding");
+const taskCmd = program.command("task").description("Kelola task RencanaNgoding");
+
 // Command: plan get
-program
-  .command("plan")
+planCmd
   .command("get <plan_id>")
   .description("Ambil detail konteks plan dan dokumen PRD")
   .action(async (planId) => {
@@ -93,8 +96,7 @@ program
   });
 
 // Command: task next
-program
-  .command("task")
+taskCmd
   .command("next")
   .description("Ambil task berikutnya sesuai urutan queue dan cek status checkpoint")
   .option("--plan <plan_id>", "ID plan aplikasi")
@@ -130,8 +132,7 @@ program
   });
 
 // Command: task start
-program
-  .command("task")
+taskCmd
   .command("start <ref>")
   .description("Tandai status task sebagai dikerjakan")
   .option("--plan <plan_id>", "ID plan")
@@ -150,8 +151,7 @@ program
   });
 
 // Command: task complete
-program
-  .command("task")
+taskCmd
   .command("complete <ref>")
   .description("Tandai status task sebagai selesai")
   .option("--plan <plan_id>", "ID plan")
@@ -170,8 +170,7 @@ program
   });
 
 // Command: task fail
-program
-  .command("task")
+taskCmd
   .command("fail <ref> [reason]")
   .description("Tandai status task sebagai gagal")
   .option("--plan <plan_id>", "ID plan")
