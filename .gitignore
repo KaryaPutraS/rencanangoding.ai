@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+.next/
+.turbo/
+out/
+
+# database
+*.db
+*.sqlite
+
+# environment
+.env
+.env.local
+.env.production
+
+# ide
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# os
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*
+
+# misc
+*.tsbuildinfo

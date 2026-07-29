@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import '@xyflow/react/dist/style.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --bg-obsidian: #07090E;
+  --bg-panel: #0E131F;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-obsidian);
+  color: #F3F4F6;
+  overflow-x: hidden;
+}
+
+/* Background Dot-Grid Pattern */
+.bg-dot-grid {
+  background-color: #07090E;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Tech Panel & Card Styling */
+.tech-panel {
+  background: rgba(14, 19, 31, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tech-card {
+  background: rgba(18, 24, 38, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tech-card:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+}
+
+.tech-input {
+  background: rgba(11, 15, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F9FAFB;
+  transition: all 0.2s ease;
+}
+
+.tech-input:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+  outline: none;
+}
+
+/* Custom Cyber Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(7, 9, 14, 0.8);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(55, 65, 81, 0.7);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.8);
+}
+
+/* Monospaced Tag Utility */
+.mono-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ReactFlow Dark Theme Overrides */
+.react-flow__controls {
+  background: rgba(14, 19, 31, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+}
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  fill: #9CA3AF !important;
+}
+.react-flow__controls-button:hover {
+  fill: #10B981 !important;
+  background: rgba(16, 185, 129, 0.1) !important;
+}

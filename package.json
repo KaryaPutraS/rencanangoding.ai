@@ -1,0 +1,19 @@
+{
+  "name": "rencanangoding-ai",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.4.4",
+    "typescript": "^5.8.2"
+  },
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
