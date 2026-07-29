@@ -13,10 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="dark">
-      <body className="min-h-screen text-gray-100 flex flex-col antialiased">
+    <html lang="id" className="dark overflow-x-hidden">
+      <body className="min-h-screen text-gray-100 flex flex-col antialiased overflow-x-hidden max-w-full">
         <AuthProvider>
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 max-w-full overflow-x-hidden">{children}</div>
         </AuthProvider>
       </body>
     </html>

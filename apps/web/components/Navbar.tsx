@@ -44,26 +44,21 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
       .catch(() => {});
   }, [user]);
 
-  const requestDeletePlan = (e: React.MouseEvent, planId: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setPlanToDelete(planId);
-  };
-
   const confirmDeletePlan = async () => {
     if (!planToDelete) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/plans/${planToDelete}`, { method: "DELETE" });
+      const res = await fetch(`/api/plans/${planToDelete}`, {
+        method: "DELETE"
+      });
       const data = await res.json();
       if (data.success) {
         setPlans((prev) => prev.filter((p) => p.id !== planToDelete));
-        if (planToDelete === currentPlanId) {
+        if (currentPlanId === planToDelete) {
           router.push("/");
         }
       }
-    } catch (err) {
-      console.error("Error deleting plan:", err);
+    } catch {
     } finally {
       setDeleting(false);
       setPlanToDelete(null);
@@ -74,28 +69,23 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 tech-panel border-b border-white/[0.08] px-3 sm:px-6 lg:px-8 py-2.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-4 lg:gap-6">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <BrandLogo variant="option1_emerald" size={34} showText={false} />
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-base sm:text-lg tracking-tight text-white">
-                    RencanaNgoding<span className="text-emerald-400 font-mono">.ai</span>
-                  </span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                </div>
-                <span className="hidden sm:block text-[9px] font-mono text-gray-400 uppercase tracking-widest">
-                  Open-Source Agent Specs Engine
+      <header className="sticky top-0 z-40 tech-panel border-b border-white/[0.08] px-2.5 sm:px-6 lg:px-8 py-2 max-w-full overflow-hidden">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          {/* Brand Logo & Compact Header Title */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 min-w-0">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0">
+              <BrandLogo variant="option1_emerald" size={28} showText={false} />
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
+                  RencanaNgoding<span className="text-emerald-400 font-mono">.ai</span>
                 </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden xs:inline-block" />
               </div>
             </Link>
 
-            {/* Nav Links on Desktop */}
+            {/* Desktop Navigation Links */}
             {currentPlanId && (
-              <nav className="hidden md:flex items-center gap-1 bg-gray-950/80 p-1 rounded-xl border border-white/[0.08] text-xs">
+              <nav className="hidden lg:flex items-center gap-1 bg-gray-950/80 p-1 rounded-xl border border-white/[0.08] text-xs">
                 <Link
                   href={`/plan/${currentPlanId}/structure`}
                   className="px-3 py-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/80 transition-colors flex items-center gap-1.5 font-medium"
@@ -122,28 +112,29 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
           </div>
 
           {/* Right Action Items */}
-          <div className="flex items-center gap-1.5 sm:gap-3 overflow-x-auto no-scrollbar max-w-full shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* User Auth Profile Badge or Login Button */}
             {user ? (
-              <div className="flex items-center gap-1.5 bg-emerald-950/60 p-1 pl-2.5 rounded-xl border border-emerald-800/60 text-xs shrink-0">
-                <span className="font-mono text-emerald-300 max-w-[80px] sm:max-w-[160px] truncate font-medium text-[11px] sm:text-xs">
+              <div className="flex items-center gap-1 bg-emerald-950/60 p-1 pl-2 rounded-xl border border-emerald-800/60 text-xs shrink-0">
+                <span className="font-mono text-emerald-300 max-w-[65px] xs:max-w-[100px] sm:max-w-[150px] truncate font-medium text-[10px] sm:text-xs">
                   {user.email}
                 </span>
                 <button
                   onClick={logout}
                   title="Logout / Keluar"
-                  className="p-2 sm:px-2 py-1.5 rounded-lg bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-300 transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                  className="p-1 rounded-lg bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-300 transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
               </div>
             ) : (
               <button
                 onClick={openAuthModal}
-                className="flex items-center gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-emerald-400 font-mono font-medium transition-colors min-h-[38px] shrink-0"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-emerald-400 font-mono font-medium transition-colors shrink-0"
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span>Masuk / OTP</span>
+                <span className="hidden xs:inline text-xs">Masuk</span>
+                <span className="xs:hidden text-[10px]">OTP</span>
               </button>
             )}
 
@@ -151,7 +142,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
             <button
               onClick={() => setShowTunnelModal(true)}
               title="Akses Endpoint & Auto Tunnel"
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl border text-xs font-mono transition-all min-h-[38px] shrink-0 ${
+              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl border text-xs font-mono transition-all shrink-0 ${
                 tunnelActive
                   ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/50 shadow-md shadow-emerald-500/20"
                   : "bg-gray-900/80 hover:bg-gray-800 border-white/[0.08] text-gray-300"
@@ -166,9 +157,9 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
             <div className="relative shrink-0">
               <button
                 onClick={() => setShowPlansDropdown(!showPlansDropdown)}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 font-medium transition-colors min-h-[38px]"
+                className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 font-medium transition-colors"
               >
-                <FolderGit2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-400" />
+                <FolderGit2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span className="hidden sm:inline">Riwayat ({plans.length})</span>
                 <span className="sm:hidden text-[10px] font-mono font-bold text-emerald-400">({plans.length})</span>
               </button>
@@ -180,65 +171,75 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
                     <Link
                       href="/"
                       onClick={() => setShowPlansDropdown(false)}
-                      className="text-[11px] text-emerald-400 hover:underline flex items-center gap-1 font-mono"
+                      className="text-[10px] text-emerald-400 font-mono flex items-center gap-1 hover:underline font-bold"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Plan Baru
+                      <Plus className="w-3 h-3" />
+                      <span>Baru</span>
                     </Link>
                   </div>
-                  <div className="max-h-64 overflow-y-auto mt-1 space-y-1">
+
+                  <div className="max-h-64 overflow-y-auto py-1 space-y-1 custom-scrollbar">
                     {plans.length === 0 ? (
-                      <p className="text-xs text-gray-500 p-4 text-center">Belum ada plan yang dibuat</p>
+                      <div className="p-4 text-center text-xs text-gray-500">
+                        Belum ada plan yang dibuat.
+                      </div>
                     ) : (
-                      plans.map((p) => (
-                        <div
-                          key={p.id}
-                          className={`flex items-center justify-between p-2.5 rounded-xl text-xs transition-colors group ${
-                            p.id === currentPlanId
-                              ? "bg-emerald-950/40 text-emerald-300 border border-emerald-500/40"
-                              : "hover:bg-gray-800/60 text-gray-300"
-                          }`}
-                        >
-                          <Link
-                            href={`/plan/${p.id}/prd`}
-                            onClick={() => setShowPlansDropdown(false)}
-                            className="flex-1 min-w-0 pr-2"
+                      plans.map((p) => {
+                        const isActive = p.id === currentPlanId;
+                        return (
+                          <div
+                            key={p.id}
+                            className={`flex items-center justify-between p-2 rounded-xl text-xs transition-colors ${
+                              isActive
+                                ? "bg-emerald-950/60 border border-emerald-500/40 text-white font-bold"
+                                : "hover:bg-gray-800/80 text-gray-300"
+                            }`}
                           >
-                            <p className="font-semibold truncate">{p.name}</p>
-                            <p className="text-[10px] text-gray-400 capitalize mt-0.5 font-mono">
-                              Status: {p.status.replace("_", " ")}
-                            </p>
-                          </Link>
-                          <button
-                            onClick={(e) => requestDeletePlan(e, p.id)}
-                            title="Hapus Plan"
-                            className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-950/50 transition-colors opacity-80 group-hover:opacity-100"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))
+                            <Link
+                              href={`/plan/${p.id}/structure`}
+                              onClick={() => setShowPlansDropdown(false)}
+                              className="flex-1 truncate pr-2"
+                            >
+                              <div className="truncate font-semibold">{p.name}</div>
+                              <div className="text-[10px] text-gray-500 font-mono">
+                                {new Date(p.createdAt).toLocaleDateString("id-ID")}
+                              </div>
+                            </Link>
+
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPlanToDelete(p.id);
+                              }}
+                              className="p-1 rounded bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-400 transition-colors"
+                              title="Hapus Plan"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* AI Settings Button */}
+            {/* AI Provider Config Settings Modal Trigger */}
             <button
               onClick={() => setShowSettingsModal(true)}
-              title="Pengaturan AI Model & API Key"
-              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 font-medium transition-colors"
+              title="Pengaturan AI API Key & Model"
+              className="p-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-gray-300 hover:text-white transition-colors shrink-0"
             >
-              <Cpu className="w-4 h-4 text-cyan-400" />
-              <span className="hidden sm:inline ml-1.5">Settings AI</span>
+              <Settings className="w-3.5 h-3.5 text-gray-400" />
             </button>
 
-            {/* New Plan Button */}
+            {/* Create New Plan Button */}
             <Link
               href="/"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all hover:scale-105"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition-all shrink-0"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Buat Rencana</span>
             </Link>
           </div>
@@ -247,7 +248,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
 
       {/* Mobile Sticky Bottom Navigation Bar */}
       {currentPlanId && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 tech-panel border-t border-white/[0.08] px-2 py-2 flex items-center justify-around text-xs">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 tech-panel border-t border-white/[0.08] px-2 py-2 flex items-center justify-around text-xs backdrop-blur-md">
           <Link
             href={`/plan/${currentPlanId}/structure`}
             className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl text-gray-300 hover:text-white transition-colors"

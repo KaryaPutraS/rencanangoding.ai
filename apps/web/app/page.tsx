@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { SupportedLanguages } from "@rencanangoding/shared";
 import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2, Lock, UserCheck } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
@@ -85,90 +84,91 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dot-grid text-gray-100 selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-dot-grid text-gray-100 selection:bg-emerald-500 selection:text-white max-w-full overflow-x-hidden">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-10 lg:py-16 flex flex-col items-center justify-center space-y-12">
+      <main className="flex-1 max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-16 flex flex-col items-center justify-center space-y-8 sm:space-y-12 max-w-full overflow-x-hidden">
         {/* Hero Header */}
-        <div className="text-center space-y-4 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs font-mono tracking-widest uppercase shadow-lg shadow-emerald-500/10">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>ENGINE // OPEN-SOURCE AGENT SPECS</span>
+        <div className="text-center space-y-3 sm:space-y-4 max-w-3xl max-w-full">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-[10px] sm:text-xs font-mono tracking-wider uppercase shadow-lg shadow-emerald-500/10">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="truncate">ENGINE // OPEN-SOURCE AGENT SPECS</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white">
+          <h1 className="text-2xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white break-words">
             Dari ide kasar menjadi <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-300 to-sky-400">spesifikasi presisi</span> untuk AI Agent.
           </h1>
 
-          <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-base text-gray-400 max-w-2xl mx-auto leading-relaxed">
             Ubah deskripsi produk menjadi <span className="text-gray-200 font-semibold font-mono">Discovery → Struktur Fitur → PRD Studio → Task Breakdown</span> secara otomatis & terstruktur.
           </p>
         </div>
 
         {/* Main Input Form Card */}
-        <div className="w-full tech-panel rounded-3xl p-6 sm:p-8 border border-white/[0.08] shadow-2xl space-y-6">
+        <div className="w-full tech-panel rounded-3xl p-4 sm:p-8 border border-white/[0.08] shadow-2xl space-y-5 sm:space-y-6 max-w-full">
           {/* Mandatory Login Notice Banner if not logged in */}
           {!user ? (
-            <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200 animate-in fade-in">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-950/50 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200">
               <div className="flex items-center gap-2.5">
                 <Lock className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>
-                  <strong className="font-mono">VERIFIKASI EMAIL DIPERLUKAN:</strong> Silakan verifikasi email kamu sebelum membuat spesifikasi aplikasi.
+                <span className="text-[11px] sm:text-xs">
+                  <strong className="font-mono">VERIFIKASI EMAIL DIPERLUKAN:</strong> Silakan verifikasi email kamu sebelum membuat spesifikasi.
                 </span>
               </div>
               <button
                 type="button"
                 onClick={openAuthModal}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs shrink-0 transition-colors min-h-[44px] flex items-center justify-center"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs font-mono transition-colors shrink-0 flex items-center justify-center shadow-md shadow-amber-500/20"
               >
                 Masuk / Verifikasi OTP
               </button>
             </div>
           ) : (
             <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 flex items-center justify-between text-xs text-emerald-300 font-mono">
-              <span className="flex items-center gap-2">
-                <UserCheck className="w-4 h-4 text-emerald-400" />
-                <span>AKUN AKTIF: {user.email}</span>
+              <span className="flex items-center gap-2 truncate">
+                <UserCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="truncate">AKUN AKTIF: {user.email}</span>
               </span>
-              <span className="text-[10px] text-emerald-400 bg-emerald-900/80 px-2 py-0.5 rounded-md font-bold">VERIFIED</span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-900/80 px-2 py-0.5 rounded-md font-bold shrink-0">VERIFIED</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Idea Input Textarea */}
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+            {/* Raw Idea Input */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-emerald-400" />
-                  <span>1. Deskripsikan Aplikasi Yang Ingin Dibuat</span>
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                  1. Deskripsikan Aplikasi yang Ingin Dibuat
                 </label>
-                <span className="text-[10px] font-mono text-gray-500">Minimal 5 Karakter</span>
               </div>
 
               <textarea
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
-                placeholder="Contoh: Saya mau buat platform SaaS kasir restoran multi-outlet berbasis web dengan sistem langganan & payout otomatis..."
+                placeholder="Contoh: Saya mau buat platform SaaS kasir restoran multi-outlet berbasis Next.js dengan sistem inventori, laporan omset, dan cetak struk thermal..."
                 rows={4}
-                className="w-full p-4 rounded-2xl tech-input text-sm text-gray-100 leading-relaxed focus:ring-1 focus:ring-emerald-500 resize-none font-sans"
+                required
+                className="w-full p-3.5 sm:p-4 rounded-2xl tech-input text-xs sm:text-sm text-gray-100 placeholder-gray-500 focus:outline-none transition-all resize-none font-sans"
               />
 
               {/* Preset Idea Chips */}
-              <div className="pt-1 flex items-center gap-2 overflow-x-auto text-xs no-scrollbar py-1">
-                <span className="text-[11px] font-mono text-gray-500 shrink-0">Contoh Ide:</span>
-                {PRESET_IDEAS.map((p, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setIdea(p);
-                      if (!user) openAuthModal();
-                    }}
-                    className="px-3 py-2 rounded-xl bg-gray-900/90 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 hover:text-white transition-colors truncate max-w-xs shrink-0 min-h-[44px] flex items-center"
-                  >
-                    {p}
-                  </button>
-                ))}
+              <div className="pt-1 flex flex-col gap-1.5 text-xs max-w-full">
+                <span className="text-[11px] font-mono text-gray-500">Contoh Ide:</span>
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 max-w-full">
+                  {PRESET_IDEAS.map((p, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setIdea(p);
+                        if (!user) openAuthModal();
+                      }}
+                      className="px-3 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0 flex items-center"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -181,13 +181,12 @@ export default function Home() {
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl tech-input text-xs font-semibold text-gray-200"
+                  className="w-full px-3.5 py-3 rounded-xl tech-input text-xs font-mono text-gray-200 focus:outline-none"
                 >
-                  {SupportedLanguages.map((l) => (
-                    <option key={l.code} value={l.code} className="bg-gray-900 text-gray-200">
-                      {l.flag} {l.name}
-                    </option>
-                  ))}
+                  <option value="id">🇮🇩 Bahasa Indonesia</option>
+                  <option value="en">🇬🇧 English (UK / US)</option>
+                  <option value="es">🇪🇸 Español</option>
+                  <option value="ja">🇯🇵 日本語 (Japanese)</option>
                 </select>
               </div>
 
@@ -195,52 +194,53 @@ export default function Home() {
                 <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider font-mono mb-2">
                   2. Preferensi Teknologi
                 </label>
-                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-950/80 rounded-2xl border border-white/[0.08] text-xs">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setTechPref("ai_choice")}
-                    className={`py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all ${
+                    className={`px-3 py-3 rounded-xl border text-xs font-bold font-mono transition-all flex items-center justify-center gap-1.5 ${
                       techPref === "ai_choice"
-                        ? "bg-emerald-600 text-white shadow-md"
-                        : "text-gray-400 hover:text-gray-200"
+                        ? "bg-emerald-950 text-emerald-300 border-emerald-500 shadow-md shadow-emerald-500/20"
+                        : "bg-gray-900/80 hover:bg-gray-800 border-white/[0.08] text-gray-400"
                     }`}
                   >
-                    <Bot className="w-3.5 h-3.5" />
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                     <span>Pilihkan AI</span>
                   </button>
+
                   <button
                     type="button"
                     onClick={() => setTechPref("manual")}
-                    className={`py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all ${
+                    className={`px-3 py-3 rounded-xl border text-xs font-bold font-mono transition-all flex items-center justify-center gap-1.5 ${
                       techPref === "manual"
-                        ? "bg-emerald-600 text-white shadow-md"
-                        : "text-gray-400 hover:text-gray-200"
+                        ? "bg-emerald-950 text-emerald-300 border-emerald-500 shadow-md shadow-emerald-500/20"
+                        : "bg-gray-900/80 hover:bg-gray-800 border-white/[0.08] text-gray-400"
                     }`}
                   >
-                    <Cpu className="w-3.5 h-3.5" />
-                    <span>Kustom Tech</span>
+                    <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Tentukan Manual</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Manual Tech Stack Chips Input */}
+            {/* Manual Tech Stack Tags Selector */}
             {techPref === "manual" && (
               <div className="p-4 rounded-2xl bg-gray-950/80 border border-white/[0.08] space-y-3 animate-in fade-in">
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
-                  Pilih / Tambah Tech Stack
+                <label className="block text-xs font-bold text-gray-300 font-mono uppercase tracking-wider">
+                  Daftar Tech Stack Yang Diinginkan:
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {manualTech.map((t) => (
+                  {manualTech.map((tech) => (
                     <span
-                      key={t}
-                      className="px-3 py-1 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-300 font-mono text-xs flex items-center gap-1.5"
+                      key={tech}
+                      className="px-3 py-1.5 rounded-lg bg-gray-900 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-2"
                     >
-                      {t}
+                      {tech}
                       <button
                         type="button"
-                        onClick={() => handleRemoveTech(t)}
-                        className="hover:text-red-400 ml-1 text-gray-400 font-bold"
+                        onClick={() => handleRemoveTech(tech)}
+                        className="text-gray-400 hover:text-red-400 font-bold"
                       >
                         ×
                       </button>
@@ -253,19 +253,19 @@ export default function Home() {
                     type="text"
                     value={customTechInput}
                     onChange={(e) => setCustomTechInput(e.target.value)}
-                    placeholder="Tambah tech lain (misal: Redis, Prisma, FastAPI)..."
-                    className="flex-1 px-3.5 py-2 rounded-xl tech-input text-xs font-mono"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         handleAddManualTech();
                       }
                     }}
+                    placeholder="Tambah tech stack (misal: Docker, Redis...)"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl tech-input text-xs font-mono"
                   />
                   <button
                     type="button"
                     onClick={handleAddManualTech}
-                    className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold font-mono transition-colors"
+                    className="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold font-mono transition-colors"
                   >
                     + Tambah
                   </button>
@@ -273,19 +273,21 @@ export default function Home() {
               </div>
             )}
 
-            {/* Error Message */}
+            {/* Error Notice Banner */}
             {error && (
-              <div className="p-3.5 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs font-medium flex items-center justify-between">
-                <span>{error}</span>
-                {!user && (
-                  <button
-                    type="button"
-                    onClick={openAuthModal}
-                    className="px-2.5 py-1 rounded bg-red-900 text-red-100 font-bold text-[11px] hover:bg-red-800 shrink-0 ml-2"
-                  >
-                    Login OTP →
-                  </button>
-                )}
+              <div className="p-4 rounded-2xl bg-red-950/60 border border-red-800 text-red-300 text-xs font-medium space-y-2 animate-in fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span>{error}</span>
+                  {!user && (
+                    <button
+                      type="button"
+                      onClick={openAuthModal}
+                      className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold font-mono text-[11px] shrink-0 self-start sm:self-auto"
+                    >
+                      Login OTP →
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -293,60 +295,18 @@ export default function Home() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-extrabold text-sm shadow-xl shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black text-sm tracking-wider uppercase font-mono shadow-xl shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 group hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
             >
               {loading ? (
-                <>
-                  <Zap className="w-5 h-5 animate-spin" />
-                  <span>Memproses Arsitektur Aplikasi...</span>
-                </>
-              ) : !user ? (
-                <>
-                  <Lock className="w-5 h-5" />
-                  <span>Verifikasi Email & Mulai Rancang</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
+                <span>MEMPROSES RENCANA APLIKASI...</span>
               ) : (
                 <>
-                  <span>Mulai Rancang Spesifikasi Sekarang</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <span>BUAT SPESIFIKASI SEKARANG</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
           </form>
-        </div>
-
-        {/* Feature Cards Grid (Anti-AI Slop Modern Linear Theme) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
-          <div className="tech-card p-5 rounded-2xl space-y-2">
-            <div className="w-9 h-9 rounded-xl bg-emerald-950 border border-emerald-800/60 flex items-center justify-center text-emerald-400">
-              <Layers className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-gray-100 font-mono">1. Discovery & Mind Map</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Tanya jawab terarah untuk menghasilkan struktur node arsitektur Frontend, Backend, dan Security.
-            </p>
-          </div>
-
-          <div className="tech-card p-5 rounded-2xl space-y-2">
-            <div className="w-9 h-9 rounded-xl bg-cyan-950 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
-              <Code2 className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-gray-100 font-mono">2. PRD Studio & Diagram</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Spesifikasi lengkap dengan Mermaid System Architecture (`graph TB`) & Database ERD (`erDiagram`).
-            </p>
-          </div>
-
-          <div className="tech-card p-5 rounded-2xl space-y-2">
-            <div className="w-9 h-9 rounded-xl bg-amber-950 border border-amber-800/60 flex items-center justify-center text-amber-400">
-              <Terminal className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-gray-100 font-mono">3. Task Kanban & CLI Agent</h3>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Breakdown tugas granular yang dapat dieksekusi otomatis menggunakan CLI runner di komputer lokal kamu.
-            </p>
-          </div>
         </div>
       </main>
     </div>
