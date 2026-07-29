@@ -48,25 +48,44 @@ program
 // Command: init
 program
   .command("init")
-  .description("Pasang skill file instruksi agent ke .claude/skills/ atau .cursor/rules/")
+  .description("Pasang skill file instruksi agent ke .claude/skills/, .opencode/skills/, dan .cursor/rules/")
   .action(() => {
     const skillContent = `# RencanaNgoding.ai Skill Instruction for Coding Agents
 
-## Peraturan Utama Eksekusi Agent:
-1. Jalankan \`npx rencanangoding task next --plan <plan_id> --json\` untuk mengambil task berikutnya.
-2. Jika \`checkpoint: true\` dikembalikan, kamu WAJIB BERHENTI dan melapor kepada user! Jangan eksekusi \`task start\` otomatis.
-3. Jalankan \`npx rencanangoding task start <ref>\` saat mulai mengerjakan task.
-4. Setelah selesai dan terverifikasi, jalankan \`npx rencanangoding task complete <ref>\`.
-5. Jika menemui error yang tidak bisa diselesaikan, jalankan \`npx rencanangoding task fail <ref> "<alasan>"\`.
+## 🔴 ATURAN UTAMA LOKASI FOLDER PROYEK:
+1. SELALU buat file, folder, komponen, dan kode proyek LANGSUNG di DIREKTORI KERJA SAAT INI (Current Working Directory: \`./\`). JANGAN PERNAH membuat file/folder di direktori temporary/temp (\`$env:TEMP\` atau \`AppData\\Local\\Temp\`)!
+2. Jalankan \`npx rencanangoding task next --plan <plan_id> --json\` untuk mengambil task berikutnya.
+3. Jika \`checkpoint: true\` dikembalikan, kamu WAJIB BERHENTI dan melapor kepada user! Jangan eksekusi \`task start\` otomatis.
+4. Jalankan \`npx rencanangoding task start <ref>\` saat mulai mengerjakan task.
+5. Setelah selesai dan terverifikasi, jalankan \`npx rencanangoding task complete <ref>\`.
+6. Jika menemui error yang tidak bisa diselesaikan, jalankan \`npx rencanangoding task fail <ref> "<alasan>"\`.
 `;
 
+    // 1. Claude Code skill
     const claudeSkillDir = path.join(process.cwd(), ".claude", "skills");
     if (!fs.existsSync(claudeSkillDir)) {
       fs.mkdirSync(claudeSkillDir, { recursive: true });
     }
     fs.writeFileSync(path.join(claudeSkillDir, "rencanangoding.md"), skillContent);
 
-    console.log("✅ Skill file RencanaNgoding berhasil dipasang di .claude/skills/rencanangoding.md");
+    // 2. OpenCode skill
+    const openCodeSkillDir = path.join(process.cwd(), ".opencode", "skills");
+    if (!fs.existsSync(openCodeSkillDir)) {
+      fs.mkdirSync(openCodeSkillDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(openCodeSkillDir, "rencanangoding.md"), skillContent);
+
+    // 3. Cursor rule
+    const cursorRulesDir = path.join(process.cwd(), ".cursor", "rules");
+    if (!fs.existsSync(cursorRulesDir)) {
+      fs.mkdirSync(cursorRulesDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(cursorRulesDir, "rencanangoding.mdc"), skillContent);
+
+    console.log("✅ Skill file RencanaNgoding berhasil dipasang di:");
+    console.log("   • .claude/skills/rencanangoding.md");
+    console.log("   • .opencode/skills/rencanangoding.md");
+    console.log("   • .cursor/rules/rencanangoding.mdc");
   });
 
 // Parent commands

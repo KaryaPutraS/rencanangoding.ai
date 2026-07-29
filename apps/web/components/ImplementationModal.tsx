@@ -34,7 +34,10 @@ export function ImplementationModal({
   // Single comprehensive 1-click instruction prompt for AI Agents (OpenCode, Claude Code, Cursor, Kimi, DeepSeek)
   const fullAgentPrompt = `Kamu akan mengerjakan task dari RencanaNgoding.ai lewat CLI \`npx rencanangoding\` (atau \`npx github:KaryaPutraS/rencanangoding.ai#main\`).
 
-Prasyarat: Node.js (cek \`node -v\`). CLI otomatis ter-download saat dijalankan via npx — tidak perlu install manual. (Opsional: \`cd apps/cli && npm link\` untuk akses tanpa npx).
+🔴 ATURAN LOKASI FOLDER PROYEK:
+Seluruh file, folder, komponen, dan kode proyek HARUS DIBUAT LANGSUNG di direktori kerja saat ini (\`./\` atau Current Working Directory proyek yang sedang kamu buka). JANGAN PERNAH membuat atau menulis kode di direktori temporary/temp (\`$env:TEMP\` atau \`AppData\\Local\\Temp\`)!
+
+Prasyarat: Node.js (cek \`node -v\`). CLI otomatis ter-download saat dijalankan via npx — tidak perlu install manual.
 
 Langkah 1 — login + pasang skill (sekali saja):
 npx rencanangoding login --token ${cliToken}    # simpan token (tanpa browser)
