@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import * as crypto from "crypto";
 import {
   Plan,
   DiscoveryQuestionAnswer,
@@ -8,11 +9,33 @@ import {
   SubFeatureNode,
   PrdDocument,
   TaskItem,
-  AiChatMessage
+  AiChatMessage,
+  User
 } from "@rencanangoding/shared";
 
 const STORE_DIR = path.join(os.homedir(), ".rencanangoding");
 const STORE_FILE = path.join(STORE_DIR, "local_store.json");
+
+export interface DbUser {
+  id: string;
+  email: string;
+  passwordHash: string;
+  name: string;
+  createdAt: string;
+}
+
+export interface DbOtp {
+  email: string;
+  code: string;
+  expiresAt: number;
+  verified: boolean;
+}
+
+export interface DbSession {
+  token: string;
+  userId: string;
+  createdAt: string;
+}
 
 interface PersistedState {
   plans: Plan[];
@@ -21,6 +44,13 @@ interface PersistedState {
   prdDocuments: Record<string, PrdDocument>;
   tasks: Record<string, TaskItem[]>;
   chatMessages: Record<string, AiChatMessage[]>;
+  users?: DbUser[];
+  otps?: Record<string, DbOtp>;
+  sessions?: Record<string, DbSession>;
+}
+
+function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password + "_rng_salt_2026").digest("hex");
 }
 
 class PersistentDataStore {
@@ -30,6 +60,10 @@ class PersistentDataStore {
   private prdMap = new Map<string, PrdDocument>();
   private tasksMap = new Map<string, TaskItem[]>();
   private chatMap = new Map<string, AiChatMessage[]>();
+  private usersMap = new Map<string, DbUser>(); // key: email
+  private usersByIdMap = new Map<string, DbUser>(); // key: id
+  private otpsMap = new Map<string, DbOtp>(); // key: email
+  private sessionsMap = new Map<string, DbSession>(); // key: token
 
   constructor() {
     this.loadFromDisk();
@@ -47,6 +81,13 @@ class PersistentDataStore {
         Object.entries(data.prdDocuments || {}).forEach(([k, v]) => this.prdMap.set(k, v));
         Object.entries(data.tasks || {}).forEach(([k, v]) => this.tasksMap.set(k, v));
         Object.entries(data.chatMessages || {}).forEach(([k, v]) => this.chatMap.set(k, v));
+
+        (data.users || []).forEach((u) => {
+          this.usersMap.set(u.email.toLowerCase(), u);
+          this.usersByIdMap.set(u.id, u);
+        });
+        Object.entries(data.otps || {}).forEach(([k, v]) => this.otpsMap.set(k.toLowerCase(), v));
+        Object.entries(data.sessions || {}).forEach(([k, v]) => this.sessionsMap.set(k, v));
       }
     } catch (err) {
       console.warn("Could not load store from disk:", err);
@@ -74,13 +115,22 @@ class PersistentDataStore {
       const chatMessages: Record<string, AiChatMessage[]> = {};
       this.chatMap.forEach((v, k) => (chatMessages[k] = v));
 
+      const otps: Record<string, DbOtp> = {};
+      this.otpsMap.forEach((v, k) => (otps[k] = v));
+
+      const sessions: Record<string, DbSession> = {};
+      this.sessionsMap.forEach((v, k) => (sessions[k] = v));
+
       const state: PersistedState = {
         plans: Array.from(this.plansMap.values()),
         discoveryAnswers,
         features,
         prdDocuments,
         tasks,
-        chatMessages
+        chatMessages,
+        users: Array.from(this.usersMap.values()),
+        otps,
+        sessions
       };
 
       fs.writeFileSync(STORE_FILE, JSON.stringify(state, null, 2), "utf-8");
@@ -88,6 +138,161 @@ class PersistentDataStore {
       console.error("Failed to save store to disk:", err);
     }
   }
+
+  // --- Auth Methods ---
+
+  async getUserByEmail(email: string): Promise<User | null> {
+    const dbUser = this.usersMap.get(email.toLowerCase());
+    if (!dbUser) return null;
+    return { id: dbUser.id, email: dbUser.email, name: dbUser.name, createdAt: dbUser.createdAt };
+  }
+
+  async requestOtp(email: string): Promise<{ code: string; expiresAt: number; isExistingUser: boolean }> {
+    const cleanEmail = email.toLowerCase().trim();
+    // Generate 6 digit numeric code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const isExistingUser = this.usersMap.has(cleanEmail);
+
+    const otpRecord: DbOtp = {
+      email: cleanEmail,
+      code,
+      expiresAt,
+      verified: false
+    };
+
+    this.otpsMap.set(cleanEmail, otpRecord);
+    this.saveToDisk();
+
+    return { code, expiresAt, isExistingUser };
+  }
+
+  async verifyOtp(email: string, code: string): Promise<{ success: boolean; isExistingUser: boolean; error?: string }> {
+    const cleanEmail = email.toLowerCase().trim();
+    const otp = this.otpsMap.get(cleanEmail);
+
+    if (!otp) {
+      return { success: false, isExistingUser: false, error: "Kode OTP belum diminta atau sudah kadaluarsa" };
+    }
+
+    if (Date.now() > otp.expiresAt) {
+      this.otpsMap.delete(cleanEmail);
+      this.saveToDisk();
+      return { success: false, isExistingUser: false, error: "Kode OTP sudah kadaluarsa, silakan minta kode baru" };
+    }
+
+    if (otp.code !== code.trim()) {
+      return { success: false, isExistingUser: false, error: "Kode OTP salah, mohon periksa kembali" };
+    }
+
+    otp.verified = true;
+    this.otpsMap.set(cleanEmail, otp);
+    this.saveToDisk();
+
+    const isExistingUser = this.usersMap.has(cleanEmail);
+    return { success: true, isExistingUser };
+  }
+
+  async createPasswordAndRegister(
+    email: string,
+    otpCode: string,
+    password: string,
+    name?: string
+  ): Promise<{ user: User; token: string }> {
+    const cleanEmail = email.toLowerCase().trim();
+    const otp = this.otpsMap.get(cleanEmail);
+
+    if (!otp || !otp.verified || otp.code !== otpCode.trim()) {
+      throw new Error("Verifikasi OTP diperlukan sebelum membuat password");
+    }
+
+    const passwordHash = hashPassword(password);
+    const existing = this.usersMap.get(cleanEmail);
+    const now = new Date().toISOString();
+
+    let dbUser: DbUser;
+
+    if (existing) {
+      dbUser = {
+        ...existing,
+        passwordHash,
+        name: name || existing.name || cleanEmail.split("@")[0]
+      };
+    } else {
+      dbUser = {
+        id: crypto.randomUUID(),
+        email: cleanEmail,
+        passwordHash,
+        name: name || cleanEmail.split("@")[0],
+        createdAt: now
+      };
+    }
+
+    this.usersMap.set(cleanEmail, dbUser);
+    this.usersByIdMap.set(dbUser.id, dbUser);
+    this.otpsMap.delete(cleanEmail);
+
+    // Create session
+    const token = `rng_sess_${crypto.randomBytes(24).toString("hex")}`;
+    const session: DbSession = {
+      token,
+      userId: dbUser.id,
+      createdAt: now
+    };
+    this.sessionsMap.set(token, session);
+    this.saveToDisk();
+
+    return {
+      user: { id: dbUser.id, email: dbUser.email, name: dbUser.name, createdAt: dbUser.createdAt },
+      token
+    };
+  }
+
+  async loginWithPassword(email: string, password: string): Promise<{ user: User; token: string }> {
+    const cleanEmail = email.toLowerCase().trim();
+    const dbUser = this.usersMap.get(cleanEmail);
+
+    if (!dbUser) {
+      throw new Error("Email belum terdaftar. Silakan minta kode OTP terlebih dahulu.");
+    }
+
+    const hash = hashPassword(password);
+    if (dbUser.passwordHash !== hash) {
+      throw new Error("Password yang dimasukkan salah");
+    }
+
+    const token = `rng_sess_${crypto.randomBytes(24).toString("hex")}`;
+    const session: DbSession = {
+      token,
+      userId: dbUser.id,
+      createdAt: new Date().toISOString()
+    };
+    this.sessionsMap.set(token, session);
+    this.saveToDisk();
+
+    return {
+      user: { id: dbUser.id, email: dbUser.email, name: dbUser.name, createdAt: dbUser.createdAt },
+      token
+    };
+  }
+
+  async getUserByToken(token: string): Promise<User | null> {
+    const session = this.sessionsMap.get(token);
+    if (!session) return null;
+
+    const dbUser = this.usersByIdMap.get(session.userId);
+    if (!dbUser) return null;
+
+    return { id: dbUser.id, email: dbUser.email, name: dbUser.name, createdAt: dbUser.createdAt };
+  }
+
+  async revokeSession(token: string): Promise<boolean> {
+    const deleted = this.sessionsMap.delete(token);
+    this.saveToDisk();
+    return deleted;
+  }
+
+  // --- Plans & Application Data ---
 
   async createPlan(input: Partial<Plan>): Promise<Plan> {
     const id = input.id || crypto.randomUUID();
@@ -126,10 +331,15 @@ class PersistentDataStore {
     return updated;
   }
 
-  async listPlans(): Promise<Plan[]> {
-    return Array.from(this.plansMap.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+  async listPlans(userId?: string): Promise<Plan[]> {
+    const allPlans = Array.from(this.plansMap.values());
+    if (!userId) {
+      return allPlans.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    return allPlans
+      .filter((p) => !p.userId || p.userId === userId || p.userId === "demo-user")
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async deletePlan(id: string): Promise<boolean> {

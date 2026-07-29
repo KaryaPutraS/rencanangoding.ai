@@ -135,6 +135,40 @@ export const PrdUpdateSchema = z.object({
   contentMarkdown: z.string()
 });
 
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  createdAt: string;
+}
+
+export interface UserSession {
+  user: User;
+  token: string;
+}
+
+// Auth API Schemas
+export const RequestOtpSchema = z.object({
+  email: z.string().email("Format email tidak valid (contoh: user@domain.com)")
+});
+
+export const VerifyOtpSchema = z.object({
+  email: z.string().email("Format email tidak valid"),
+  code: z.string().length(6, "Kode OTP harus 6 digit angka")
+});
+
+export const CreatePasswordSchema = z.object({
+  email: z.string().email("Format email tidak valid"),
+  otpCode: z.string().length(6, "Kode OTP harus 6 digit angka"),
+  password: z.string().min(6, "Password minimal 6 karakter")
+});
+
+export const LoginPasswordSchema = z.object({
+  email: z.string().email("Format email tidak valid"),
+  password: z.string().min(1, "Password tidak boleh kosong")
+});
+
 export const PrdRevisionChatSchema = z.object({
   message: z.string().min(1, "Pesan tidak boleh kosong")
 });
+

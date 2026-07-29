@@ -4,12 +4,16 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SupportedLanguages, Plan } from "@rencanangoding/shared";
-import { Terminal, Globe, FolderGit2, Plus, Code2, Settings, Trash2, Cpu } from "lucide-react";
+import { Terminal, Globe, FolderGit2, Plus, Code2, Settings, Trash2, Cpu, UserCheck, LogOut, Lock } from "lucide-react";
 import { SettingsModal } from "./SettingsModal";
 import { TunnelStatusModal } from "./TunnelStatusModal";
+import { AuthModal } from "./AuthModal";
+import { useAuth } from "./AuthContext";
 
 export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
   const router = useRouter();
+  const { user, isAuthModalOpen, openAuthModal, closeAuthModal, logout } = useAuth();
+
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showPlansDropdown, setShowPlansDropdown] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -34,7 +38,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [user]);
 
   const handleDeletePlan = async (e: React.MouseEvent, planId: string) => {
     e.stopPropagation();
@@ -109,6 +113,30 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
 
           {/* Right Action Items */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* User Auth Profile Badge or Login Button */}
+            {user ? (
+              <div className="flex items-center gap-1.5 bg-emerald-950/60 p-1 pl-2.5 rounded-xl border border-emerald-800/60 text-xs">
+                <span className="font-mono text-emerald-300 max-w-[120px] sm:max-w-[160px] truncate font-medium">
+                  {user.email}
+                </span>
+                <button
+                  onClick={logout}
+                  title="Logout / Keluar"
+                  className="p-1 sm:px-2 py-1 rounded-lg bg-gray-900 hover:bg-red-950 text-gray-400 hover:text-red-300 transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={openAuthModal}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-white/[0.08] text-xs text-emerald-400 font-mono font-medium transition-colors"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Masuk / OTP</span>
+              </button>
+            )}
+
             {/* Auto Tunnel / Access Endpoint Button */}
             <button
               onClick={() => setShowTunnelModal(true)}
@@ -234,6 +262,10 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
       )}
 
       {/* Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+      />
       <SettingsModal
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
