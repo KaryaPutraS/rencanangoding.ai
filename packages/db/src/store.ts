@@ -141,6 +141,24 @@ class PersistentDataStore {
 
   // --- Auth Methods ---
 
+  async listAllUsers(): Promise<{ id: string; email: string; name?: string; createdAt: string; planCount: number }[]> {
+    const users = Array.from(this.usersMap.values());
+    const allPlans = Array.from(this.plansMap.values());
+
+    return users
+      .map((u) => {
+        const planCount = allPlans.filter((p) => p.userId === u.id).length;
+        return {
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          createdAt: u.createdAt,
+          planCount
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
   async getUserByEmail(email: string): Promise<User | null> {
     const dbUser = this.usersMap.get(email.toLowerCase());
     if (!dbUser) return null;
