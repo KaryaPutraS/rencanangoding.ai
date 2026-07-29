@@ -10,7 +10,8 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=7518
 COPY --from=builder /app .
 
-EXPOSE 3000
+EXPOSE 7518
 CMD ["pnpm", "--filter", "@rencanangoding/web", "start"]

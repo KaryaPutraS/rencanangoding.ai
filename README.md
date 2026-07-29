@@ -6,6 +6,23 @@ RencanaNgoding.ai adalah platform perencanaan arsitektur aplikasi yang mengubah 
 
 ---
 
+## ⚡ 1-Line Quick Install (Server / VPS)
+
+Jalankan perintah ini di terminal server kamu (Linux / macOS):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/KaryaPutraS/rencanangoding.ai/main/install.sh | bash
+```
+
+> **Atau dengan wget:**
+> ```bash
+> wget -qO- https://raw.githubusercontent.com/KaryaPutraS/rencanangoding.ai/main/install.sh | bash
+> ```
+
+Aplikasi akan otomatis terinstall dan berjalan di port **`7518`** (`http://<IP_SERVER>:7518`).
+
+---
+
 ## Fitur Utama
 
 | Fitur | Deskripsi |

@@ -1,19 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: rencanangoding_db
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: rencanangoding
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
   web:
     build:
       context: .
@@ -21,13 +8,13 @@ services:
     container_name: rencanangoding_web
     restart: always
     ports:
-      - "3000:3000"
+      - "7518:7518"
     environment:
-      - DATABASE_URL=postgres://postgres:postgrespassword@postgres:5432/rencanangoding
+      - PORT=7518
       - NODE_ENV=production
       - AI_PROVIDER=mock
-    depends_on:
-      - postgres
+    volumes:
+      - rencanangoding_data:/root/.rencanangoding
 
 volumes:
-  pgdata:
+  rencanangoding_data:
