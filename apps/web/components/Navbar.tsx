@@ -9,6 +9,7 @@ import { SettingsModal } from "./SettingsModal";
 import { TunnelStatusModal } from "./TunnelStatusModal";
 import { AuthModal } from "./AuthModal";
 import { ConfirmModal } from "./ConfirmModal";
+import { BrandLogo } from "./BrandLogo";
 import { useAuth } from "./AuthContext";
 
 export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
@@ -78,9 +79,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
           {/* Brand Logo */}
           <div className="flex items-center gap-4 lg:gap-6">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 sm:w-9 h-8 sm:h-9 rounded-xl bg-gray-900 border border-emerald-500/40 flex items-center justify-center shadow-lg shadow-emerald-500/10 group-hover:border-emerald-400 transition-all duration-200">
-                <Terminal className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-400" />
-              </div>
+              <BrandLogo variant="option1_emerald" size={34} showText={false} />
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-extrabold text-base sm:text-lg tracking-tight text-white">
