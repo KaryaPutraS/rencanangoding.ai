@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useId } from "react";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import mermaid from "mermaid";
 import {
@@ -17,7 +18,8 @@ import {
   MessageSquarePlus,
   Sparkles,
   FileText,
-  Network
+  Network,
+  KanbanSquare
 } from "lucide-react";
 import { ReactFlowMindMap } from "../mindmap/ReactFlowMindMap";
 import { RevisionChat } from "./RevisionChat";
@@ -103,6 +105,7 @@ export function PrdSplitView({
   features = [],
   tasks = []
 }: PrdSplitViewProps) {
+  const router = useRouter();
   const [markdown, setMarkdown] = useState(initialMarkdown);
   const [mode, setMode] = useState<"preview" | "source">("preview");
   const [mobileTab, setMobileTab] = useState<"prd" | "mindmap">("prd");
@@ -235,6 +238,16 @@ export function PrdSplitView({
           >
             <MessageSquarePlus className="w-4 h-4" />
             <span className="hidden sm:inline">Chat Revisi</span>
+          </button>
+
+          {/* Task Kanban Page Button */}
+          <button
+            onClick={() => router.push(`/plan/${planId}/kanban`)}
+            title="Buka Papan Task Kanban"
+            className="px-3 py-1.5 rounded-xl border border-white/[0.08] bg-gray-900 hover:bg-gray-800 text-amber-300 font-semibold text-xs flex items-center gap-1.5 transition-all shrink-0 hover:scale-105"
+          >
+            <KanbanSquare className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">Task Kanban</span>
           </button>
 
           {/* Expand Fullscreen Toggle */}
