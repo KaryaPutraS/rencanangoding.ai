@@ -3,6 +3,9 @@ import { dbStore } from "@rencanangoding/db";
 import { RequestOtpSchema } from "@rencanangoding/shared";
 import { sendOtpEmail } from "@/lib/email";
 
+// Strict rate-limiter per email address (45 seconds cooldown to prevent spam/abuse)
+const otpCooldownMap = new Map<string, number>();
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -10,13 +13,28 @@ export async function POST(req: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: parsed.error.errors[0]?.message || "Input tidak valid" },
+        { success: false, error: parsed.error.errors[0]?.message || "Input email tidak valid" },
         { status: 400 }
       );
     }
 
     const { email } = parsed.data;
-    const { code, expiresAt, isExistingUser } = await dbStore.requestOtp(email);
+    const cleanEmail = email.toLowerCase().trim();
+
+    // Check rate limit cooldown
+    const lastRequest = otpCooldownMap.get(cleanEmail);
+    const now = Date.now();
+    if (lastRequest && now - lastRequest < 45 * 1000) {
+      const waitSeconds = Math.ceil((45 * 1000 - (now - lastRequest)) / 1000);
+      return NextResponse.json(
+        { success: false, error: `Mohon tunggu ${waitSeconds} detik sebelum meminta kode OTP baru.` },
+        { status: 429 }
+      );
+    }
+
+    otpCooldownMap.set(cleanEmail, now);
+
+    const { code, expiresAt, isExistingUser } = await dbStore.requestOtp(cleanEmail);
 
     // Read optional email credentials from request headers or body
     const resendApiKey = req.headers.get("x-resend-api-key") || body.resendApiKey;
@@ -28,7 +46,7 @@ export async function POST(req: Request) {
 
     // Attempt real email dispatch via Resend or SMTP
     const emailResult = await sendOtpEmail({
-      toEmail: email,
+      toEmail: cleanEmail,
       otpCode: code,
       config: {
         resendApiKey,
@@ -43,8 +61,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: emailResult.sent
-        ? `Kode OTP berhasil dikirim ke ${email}!`
-        : `Kode OTP verifikasi berhasil dibuat untuk ${email}`,
+        ? `Kode OTP berhasil dikirim ke ${cleanEmail}!`
+        : `Kode OTP verifikasi berhasil dibuat untuk ${cleanEmail}`,
       isExistingUser,
       emailSent: emailResult.sent,
       // If email dispatch was not configured, expose devOtpCode for seamless open-source usage
