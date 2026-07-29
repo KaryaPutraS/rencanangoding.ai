@@ -459,6 +459,19 @@ class PersistentDataStore {
     return task;
   }
 
+  async resetTaskProgress(planId: string): Promise<TaskItem[]> {
+    const list = this.tasksMap.get(planId) || [];
+    const resetList = list.map((t) => ({
+      ...t,
+      status: "belum_mulai" as const,
+      failReason: undefined,
+      updatedAt: new Date().toISOString()
+    }));
+    this.tasksMap.set(planId, resetList);
+    this.saveToDisk();
+    return resetList;
+  }
+
   async addChatMessage(planId: string, role: "user" | "assistant", content: string): Promise<AiChatMessage> {
     const list = this.chatMap.get(planId) || [];
     const msg: AiChatMessage = {
