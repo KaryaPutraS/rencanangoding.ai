@@ -106,8 +106,8 @@ export function BrandLogo({
 
       {showText && (
         <div className="flex flex-col">
-          <span className="text-sm font-extrabold tracking-tight text-white flex items-center gap-0.5">
-            RencanaNgoding<span className="text-emerald-400 font-mono font-bold">.ai</span>
+          <span className="text-sm font-extrabold tracking-tight text-white flex items-center gap-0.5 font-sans">
+            RencanaNgoding<span className="text-emerald-400 font-bold font-sans">AI</span>
           </span>
         </div>
       )}

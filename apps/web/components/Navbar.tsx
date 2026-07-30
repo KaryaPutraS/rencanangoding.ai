@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plan } from "@rencanangoding/shared";
-import { Terminal, Globe, FolderGit2, Plus, Code2, Settings, Trash2, Cpu, UserCheck, LogOut, Lock } from "lucide-react";
+import { Terminal, Globe, FolderGit2, Plus, Code2, Settings, Trash2, Cpu, UserCheck, LogOut, Lock, Users, FileText } from "lucide-react";
 import { SettingsModal } from "./SettingsModal";
 import { TunnelStatusModal } from "./TunnelStatusModal";
 import { AuthModal } from "./AuthModal";
@@ -76,12 +76,32 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0">
               <BrandLogo variant="option1_emerald" size={28} showText={false} />
               <div className="flex items-center gap-1">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
-                  RencanaNgoding<span className="text-emerald-400 font-mono">.ai</span>
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white font-sans">
+                  RencanaNgoding<span className="text-emerald-400 font-bold font-sans">AI</span>
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse hidden xs:inline-block" />
               </div>
             </Link>
+
+            {/* Live Ticker Widget (As requested) */}
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-gray-900/90 border border-white/[0.08] text-xs font-mono">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                LIVE
+              </span>
+              <span className="text-gray-600">|</span>
+              <span className="flex items-center gap-1 text-gray-300 font-bold text-[11px]">
+                <Users className="w-3.5 h-3.5 text-cyan-400" />
+                <span>29.4K</span>
+                <span className="text-[10px] text-gray-400 font-normal">User</span>
+              </span>
+              <span className="text-gray-600">|</span>
+              <span className="flex items-center gap-1 text-gray-300 font-bold text-[11px]">
+                <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                <span>14.6K</span>
+                <span className="text-[10px] text-gray-400 font-normal">PRD</span>
+              </span>
+            </div>
 
             {/* Desktop Navigation Links */}
             {currentPlanId && (

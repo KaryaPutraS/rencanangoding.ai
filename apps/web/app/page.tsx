@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2, Lock, UserCheck } from "lucide-react";
+import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2, Lock, UserCheck, Users, FileText } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
 const PRESET_IDEAS = [
@@ -89,10 +89,25 @@ export default function Home() {
 
       <main className="flex-1 max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-16 flex flex-col items-center justify-center space-y-8 sm:space-y-12 max-w-full overflow-x-hidden">
         {/* Hero Header */}
-        <div className="text-center space-y-3 sm:space-y-4 max-w-3xl max-w-full">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-[10px] sm:text-xs font-mono tracking-wider uppercase shadow-lg shadow-emerald-500/10">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span className="truncate">ENGINE // OPEN-SOURCE AGENT SPECS</span>
+        <div className="text-center space-y-3 sm:space-y-4 max-w-3xl max-w-full flex flex-col items-center">
+          {/* Live Status Ticker Widget */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-gray-900/90 border border-emerald-500/30 text-xs font-mono shadow-xl backdrop-blur-md">
+            <span className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              LIVE
+            </span>
+            <span className="text-gray-600">|</span>
+            <span className="flex items-center gap-1.5 text-gray-200 font-bold text-xs">
+              <Users className="w-3.5 h-3.5 text-cyan-400" />
+              <span>29.4K</span>
+              <span className="text-[10px] text-gray-400 font-normal">User</span>
+            </span>
+            <span className="text-gray-600">|</span>
+            <span className="flex items-center gap-1.5 text-gray-200 font-bold text-xs">
+              <FileText className="w-3.5 h-3.5 text-emerald-400" />
+              <span>14.6K</span>
+              <span className="text-[10px] text-gray-400 font-normal">PRD</span>
+            </span>
           </div>
 
           <h1 className="text-2xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight text-white break-words">

@@ -238,15 +238,15 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </div>
           <div>
             <h2 className="text-base font-bold text-gray-100 font-mono flex items-center gap-2">
-              <span>AUTENTIKASI USER</span>
+              <span>AKUN USER</span>
               <span className="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-emerald-950 text-emerald-300 border border-emerald-800">
-                {step === "login-password" ? "Email + Password" : "Verifikasi Email"}
+                {step === "login-password" ? "Login Password" : "Pendaftaran Email"}
               </span>
             </h2>
             <p className="text-xs text-gray-400">
               {step === "login-password"
-                ? "Masukkan password akun kamu untuk masuk"
-                : "Verifikasi email 1 kali untuk membuat password akun"}
+                ? "Masukkan password akun kamu untuk masuk ke dashboard"
+                : "Masukkan email kamu untuk mulai menggunakan RencanaNgodingAI"}
             </p>
           </div>
         </div>
