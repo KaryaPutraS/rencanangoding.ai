@@ -92,13 +92,13 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
               <span className="text-gray-600">|</span>
               <span className="flex items-center gap-1 text-gray-300 font-bold text-[11px]">
                 <Users className="w-3.5 h-3.5 text-cyan-400" />
-                <span>29.4K</span>
+                <span>2.4K</span>
                 <span className="text-[10px] text-gray-400 font-normal">User</span>
               </span>
               <span className="text-gray-600">|</span>
               <span className="flex items-center gap-1 text-gray-300 font-bold text-[11px]">
                 <FileText className="w-3.5 h-3.5 text-emerald-400" />
-                <span>14.6K</span>
+                <span>5.1K</span>
                 <span className="text-[10px] text-gray-400 font-normal">PRD</span>
               </span>
             </div>
