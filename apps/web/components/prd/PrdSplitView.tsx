@@ -34,7 +34,7 @@ if (typeof window !== "undefined") {
   mermaid.initialize({
     startOnLoad: false,
     theme: "dark",
-    securityLevel: "loose",
+    securityLevel: "strict",
     themeVariables: {
       darkMode: true,
       background: "#090d16",
