@@ -3,7 +3,7 @@ set -e
 
 # Clear screen & display banner
 echo "========================================================"
-echo "   🚀 RencanaNgoding.ai — Server One-Line Installer"
+echo "   🚀 RencanaNgodingAI — Server One-Line Installer"
 echo "   Ubah ide kasar menjadi spesifikasi presisi AI Agent"
 echo "========================================================"
 echo ""

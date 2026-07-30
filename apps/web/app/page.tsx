@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
-import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2, Lock, UserCheck, Users, FileText } from "lucide-react";
+import { ArrowRight, Bot, Cpu, Check, Layers, Terminal, Zap, Sparkles, Shield, Code2, Lock, UserCheck, Users, FileText, Copy, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
 const PRESET_IDEAS = [
@@ -23,6 +23,11 @@ export default function Home() {
   const [customTechInput, setCustomTechInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [copiedCurl, setCopiedCurl] = useState(false);
+  const [copiedWget, setCopiedWget] = useState(false);
+
+  const curlCmd = "curl -fsSL https://raw.githubusercontent.com/KaryaPutraS/rencanangoding.ai/main/install.sh | bash";
+  const wgetCmd = "wget -qO- https://raw.githubusercontent.com/KaryaPutraS/rencanangoding.ai/main/install.sh | bash";
 
   const handleAddManualTech = () => {
     if (customTechInput.trim() && !manualTech.includes(customTechInput.trim())) {
@@ -121,21 +126,61 @@ export default function Home() {
 
         {/* Main Input Form Card */}
         <div className="w-full tech-panel rounded-3xl p-4 sm:p-8 border border-white/[0.08] shadow-2xl space-y-5 sm:space-y-6 max-w-full">
-          {/* Primary Self-Host CLI Install Banner (Utama) */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-gray-950/90 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
-            <div className="flex items-center gap-2.5">
-              <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>
-                <strong className="text-emerald-400">INSTALL SELF-HOSTED (UTAMA):</strong> <code className="text-white bg-gray-900 px-2 py-0.5 rounded border border-white/[0.08]">npx rencanangodingai init</code>
+          {/* Primary Self-Host One-Line Script Installer Box (Utama) */}
+          <div className="p-4 rounded-2xl bg-gray-950/90 border border-emerald-500/50 shadow-xl space-y-3 font-mono">
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span className="flex items-center gap-2 font-bold text-emerald-400">
+                <Terminal className="w-4 h-4 text-emerald-400" />
+                INSTALL SELF-HOSTED SERVER (ONE-LINE SCRIPT UTAMA)
+              </span>
+              <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-bold">
+                1-LINE INSTALLER
               </span>
             </div>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard.writeText("npx rencanangodingai init")}
-              className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 min-h-[38px]"
-            >
-              <span>Salin Perintah CLI</span>
-            </button>
+
+            {/* Option A: cURL */}
+            <div className="p-3 rounded-xl bg-gray-900 border border-white/[0.08] flex items-center justify-between gap-2 text-xs text-emerald-300 font-bold">
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-gray-500">$</span>
+                <code className="truncate text-white font-mono text-[11px] sm:text-xs">{curlCmd}</code>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(curlCmd);
+                  setCopiedCurl(true);
+                  setTimeout(() => setCopiedCurl(false), 2000);
+                }}
+                className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 shadow-md shadow-emerald-600/20"
+              >
+                {copiedCurl ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedCurl ? "Tersalin!" : "Salin cURL"}</span>
+              </button>
+            </div>
+
+            {/* Option B: Wget */}
+            <div className="p-3 rounded-xl bg-gray-900 border border-white/[0.08] flex items-center justify-between gap-2 text-xs text-emerald-300 font-bold">
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-gray-500">$</span>
+                <code className="truncate text-white font-mono text-[11px] sm:text-xs">{wgetCmd}</code>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(wgetCmd);
+                  setCopiedWget(true);
+                  setTimeout(() => setCopiedWget(false), 2000);
+                }}
+                className="px-3.5 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 border border-white/[0.1] font-bold text-xs flex items-center gap-1.5 transition-all shrink-0"
+              >
+                {copiedWget ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedWget ? "Tersalin!" : "Salin Wget"}</span>
+              </button>
+            </div>
+
+            <p className="text-[11px] text-gray-400 text-center">
+              Jalankan salah satu perintah di atas pada terminal Linux / macOS / VPS kamu untuk menginstall server RencanaNgodingAI.
+            </p>
           </div>
 
           {/* Mandatory Login Notice Banner if not logged in */}
