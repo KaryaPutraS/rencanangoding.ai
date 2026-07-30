@@ -121,6 +121,23 @@ export default function Home() {
 
         {/* Main Input Form Card */}
         <div className="w-full tech-panel rounded-3xl p-4 sm:p-8 border border-white/[0.08] shadow-2xl space-y-5 sm:space-y-6 max-w-full">
+          {/* Primary Self-Host CLI Install Banner (Utama) */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-gray-950/90 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+            <div className="flex items-center gap-2.5">
+              <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>
+                <strong className="text-emerald-400">INSTALL SELF-HOSTED (UTAMA):</strong> <code className="text-white bg-gray-900 px-2 py-0.5 rounded border border-white/[0.08]">npx ngodingpakeai init</code>
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigator.clipboard.writeText("npx ngodingpakeai init")}
+              className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 min-h-[38px]"
+            >
+              <span>Salin Perintah CLI</span>
+            </button>
+          </div>
+
           {/* Mandatory Login Notice Banner if not logged in */}
           {!user ? (
             <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-950/50 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200">
