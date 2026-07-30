@@ -35,8 +35,12 @@ export default function Home() {
     setManualTech(manualTech.filter((t) => t !== tech));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent, overrideIdea?: string) => {
+    if (e) {
+      e.preventDefault();
+    }
+
+    const finalIdea = overrideIdea || idea;
 
     if (!user) {
       setError("Kamu wajib verifikasi email & login terlebih dahulu sebelum menggunakan sistem.");
@@ -44,7 +48,7 @@ export default function Home() {
       return;
     }
 
-    if (!idea.trim() || idea.trim().length < 5) {
+    if (!finalIdea.trim() || finalIdea.trim().length < 5) {
       setError("Mohon jelaskan ide aplikasi kamu secara singkat (minimal 5 karakter).");
       return;
     }
@@ -57,7 +61,7 @@ export default function Home() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          rawIdea: idea,
+          rawIdea: finalIdea,
           outputLanguage: language,
           techPreference: techPref,
           manualTechStack: techPref === "manual" ? manualTech : undefined
@@ -162,7 +166,11 @@ export default function Home() {
                       type="button"
                       onClick={() => {
                         setIdea(p);
-                        if (!user) openAuthModal();
+                        if (!user) {
+                          openAuthModal();
+                        } else {
+                          handleSubmit(undefined, p);
+                        }
                       }}
                       className="px-3 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 border border-white/[0.08] text-xs text-gray-300 hover:text-white transition-colors whitespace-nowrap shrink-0 flex items-center"
                     >
