@@ -5,6 +5,11 @@ import { AuthProvider } from "@/components/AuthContext";
 export const metadata: Metadata = {
   title: "RencanaNgoding.ai — Dari ide jadi rencana yang siap dikerjakan AI agent kamu",
   description: "Platform open-source yang mengubah ide aplikasi menjadi Struktur fitur → PRD → Task breakdown → eksekusi otomatis via CLI + AI coding agent.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
