@@ -69,7 +69,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 tech-panel border-b border-white/[0.08] px-2.5 sm:px-6 lg:px-8 py-2 max-w-full overflow-hidden">
+      <header className="sticky top-0 z-40 tech-panel border-b border-white/[0.08] px-2.5 sm:px-6 lg:px-8 py-2 max-w-full">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           {/* Brand Logo & Compact Header Title */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0 min-w-0">
@@ -185,7 +185,9 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
               </button>
 
               {showPlansDropdown && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-xs sm:w-80 tech-panel rounded-2xl shadow-2xl p-2 z-50 border border-white/[0.1] animate-in fade-in slide-in-from-top-2">
+                <>
+                  <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowPlansDropdown(false)} />
+                  <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-xs sm:w-80 tech-panel rounded-2xl shadow-2xl p-2 z-50 border border-white/[0.1] animate-in fade-in slide-in-from-top-2">
                   <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.08]">
                     <span className="text-xs font-bold text-gray-200 uppercase tracking-wider font-mono">Daftar Plan Kamu</span>
                     <Link
@@ -242,6 +244,7 @@ export function Navbar({ currentPlanId }: { currentPlanId?: string }) {
                     )}
                   </div>
                 </div>
+              </>
               )}
             </div>
 
