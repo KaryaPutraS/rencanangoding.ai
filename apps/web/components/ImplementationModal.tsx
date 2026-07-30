@@ -32,7 +32,7 @@ export function ImplementationModal({
   const serverUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:7518";
 
   // Single comprehensive 1-click instruction prompt for AI Agents (OpenCode, Claude Code, Cursor, Kimi, DeepSeek)
-  const fullAgentPrompt = `Kamu akan mengerjakan task dari RencanaNgoding.ai lewat CLI \`npx rencanangoding\` (atau \`npx github:KaryaPutraS/rencanangoding.ai#main\`).
+  const fullAgentPrompt = `Kamu akan mengerjakan task dari RencanaNgodingAI lewat CLI \`npx rencanangodingai\` (atau \`npx github:KaryaPutraS/rencanangoding.ai#main\`).
 
 🔴 ATURAN LOKASI FOLDER PROYEK:
 Seluruh file, folder, komponen, dan kode proyek HARUS DIBUAT LANGSUNG di direktori kerja saat ini (\`./\` atau Current Working Directory proyek yang sedang kamu buka). JANGAN PERNAH membuat atau menulis kode di direktori temporary/temp (\`$env:TEMP\` atau \`AppData\\Local\\Temp\`)!
@@ -40,18 +40,18 @@ Seluruh file, folder, komponen, dan kode proyek HARUS DIBUAT LANGSUNG di direkto
 Prasyarat: Node.js (cek \`node -v\`). CLI otomatis ter-download saat dijalankan via npx — tidak perlu install manual.
 
 Langkah 1 — login + pasang skill (sekali saja):
-npx rencanangoding login --token ${cliToken}    # simpan token (tanpa browser)
-npx rencanangoding init     # pasang skill "rencanangoding" ke agent (auto-load)
+npx rencanangodingai login --token ${cliToken}    # simpan token (tanpa browser)
+npx rencanangodingai init     # pasang skill "rencanangodingai" ke agent (auto-load)
 
 Langkah 2 — baca PRD dulu (konteks proyek, sekali saja):
-npx rencanangoding plan get ${planId}    # PRD lengkap → tujuan, fitur, tech stack
+npx rencanangodingai plan get ${planId}    # PRD lengkap → tujuan, fitur, tech stack
 
 Langkah 3 — LOOP: kerjakan SATU task per satu, BERHENTI tiap ganti fase/layer.
 Server yang pilih task berikutnya (frontend & HALAMAN PERTAMA diselesaikan dulu di atas data tiruan/stub; backend menyusul). Kamu TIDAK perlu lihat seluruh backlog.
 INGAT \`layer\` (frontend/backend) & \`phase.current\` task yang BARU kamu selesaikan.
 
 Ulangi siklus ini:
-  npx rencanangoding task next --plan ${planId} --json   # SATU task berikutnya
+  npx rencanangodingai task next --plan ${planId} --json   # SATU task berikutnya
       # respons: { done, task:{ref,title,...}, progress:{ phase:{current,total}, layer, page, ... } }
       # kerjakan dari title + PRD + baca kode; TAK ADA field prompt/description.
       # kalau "done": true → SEMUA task selesai. BERHENTI & lapor ke user.

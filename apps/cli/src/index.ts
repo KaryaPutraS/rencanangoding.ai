@@ -31,14 +31,14 @@ function saveConfig(data: Record<string, any>) {
 }
 
 program
-  .name("rencanangoding")
-  .description("RencanaNgoding.ai CLI agent runner & task manager")
+  .name("rencanangodingai")
+  .description("RencanaNgodingAI CLI agent runner & task manager")
   .version("0.1.0");
 
 // Command: login
 program
   .command("login")
-  .description("Login ke server RencanaNgoding.ai dengan token API")
+  .description("Login ke server RencanaNgodingAI dengan token API")
   .requiredOption("-t, --token <token>", "API Access Token")
   .action((options) => {
     saveConfig({ token: options.token });
@@ -50,15 +50,15 @@ program
   .command("init")
   .description("Pasang skill file instruksi agent ke .claude/skills/, .opencode/skills/, dan .cursor/rules/")
   .action(() => {
-    const skillContent = `# RencanaNgoding.ai Skill Instruction for Coding Agents
+    const skillContent = `# RencanaNgodingAI Skill Instruction for Coding Agents
 
 ## 🔴 ATURAN UTAMA LOKASI FOLDER PROYEK:
 1. SELALU buat file, folder, komponen, dan kode proyek LANGSUNG di DIREKTORI KERJA SAAT INI (Current Working Directory: \`./\`). JANGAN PERNAH membuat file/folder di direktori temporary/temp (\`$env:TEMP\` atau \`AppData\\Local\\Temp\`)!
-2. Jalankan \`npx rencanangoding task next --plan <plan_id> --json\` untuk mengambil task berikutnya.
+2. Jalankan \`npx rencanangodingai task next --plan <plan_id> --json\` untuk mengambil task berikutnya.
 3. Jika \`checkpoint: true\` dikembalikan, kamu WAJIB BERHENTI dan melapor kepada user! Jangan eksekusi \`task start\` otomatis.
-4. Jalankan \`npx rencanangoding task start <ref>\` saat mulai mengerjakan task.
-5. Setelah selesai dan terverifikasi, jalankan \`npx rencanangoding task complete <ref>\`.
-6. Jika menemui error yang tidak bisa diselesaikan, jalankan \`npx rencanangoding task fail <ref> "<alasan>"\`.
+4. Jalankan \`npx rencanangodingai task start <ref>\` saat mulai mengerjakan task.
+5. Setelah selesai dan terverifikasi, jalankan \`npx rencanangodingai task complete <ref>\`.
+6. Jika menemui error yang tidak bisa diselesaikan, jalankan \`npx rencanangodingai task fail <ref> "<alasan>"\`.
 `;
 
     // 1. Claude Code skill
@@ -66,31 +66,31 @@ program
     if (!fs.existsSync(claudeSkillDir)) {
       fs.mkdirSync(claudeSkillDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(claudeSkillDir, "rencanangoding.md"), skillContent);
+    fs.writeFileSync(path.join(claudeSkillDir, "rencanangodingai.md"), skillContent);
 
     // 2. OpenCode skill
     const openCodeSkillDir = path.join(process.cwd(), ".opencode", "skills");
     if (!fs.existsSync(openCodeSkillDir)) {
       fs.mkdirSync(openCodeSkillDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(openCodeSkillDir, "rencanangoding.md"), skillContent);
+    fs.writeFileSync(path.join(openCodeSkillDir, "rencanangodingai.md"), skillContent);
 
     // 3. Cursor rule
     const cursorRulesDir = path.join(process.cwd(), ".cursor", "rules");
     if (!fs.existsSync(cursorRulesDir)) {
       fs.mkdirSync(cursorRulesDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(cursorRulesDir, "rencanangoding.mdc"), skillContent);
+    fs.writeFileSync(path.join(cursorRulesDir, "rencanangodingai.mdc"), skillContent);
 
-    console.log("✅ Skill file RencanaNgoding berhasil dipasang di:");
-    console.log("   • .claude/skills/rencanangoding.md");
-    console.log("   • .opencode/skills/rencanangoding.md");
-    console.log("   • .cursor/rules/rencanangoding.mdc");
+    console.log("✅ Skill file RencanaNgodingAI berhasil dipasang di:");
+    console.log("   • .claude/skills/rencanangodingai.md");
+    console.log("   • .opencode/skills/rencanangodingai.md");
+    console.log("   • .cursor/rules/rencanangodingai.mdc");
   });
 
 // Parent commands
-const planCmd = program.command("plan").description("Kelola plan RencanaNgoding");
-const taskCmd = program.command("task").description("Kelola task RencanaNgoding");
+const planCmd = program.command("plan").description("Kelola plan RencanaNgodingAI");
+const taskCmd = program.command("task").description("Kelola task RencanaNgodingAI");
 
 // Command: plan get
 planCmd

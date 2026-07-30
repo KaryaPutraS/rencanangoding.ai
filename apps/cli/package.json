@@ -1,9 +1,9 @@
 {
-  "name": "rencanangoding",
+  "name": "rencanangodingai",
   "version": "0.1.0",
   "private": true,
   "bin": {
-    "rencanangoding": "./dist/index.js"
+    "rencanangodingai": "./dist/index.js"
   },
   "scripts": {
     "build": "tsup src/index.ts --format cjs --dts",

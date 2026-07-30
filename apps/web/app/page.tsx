@@ -126,12 +126,12 @@ export default function Home() {
             <div className="flex items-center gap-2.5">
               <Terminal className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>
-                <strong className="text-emerald-400">INSTALL SELF-HOSTED (UTAMA):</strong> <code className="text-white bg-gray-900 px-2 py-0.5 rounded border border-white/[0.08]">npx ngodingpakeai init</code>
+                <strong className="text-emerald-400">INSTALL SELF-HOSTED (UTAMA):</strong> <code className="text-white bg-gray-900 px-2 py-0.5 rounded border border-white/[0.08]">npx rencanangodingai init</code>
               </span>
             </div>
             <button
               type="button"
-              onClick={() => navigator.clipboard.writeText("npx ngodingpakeai init")}
+              onClick={() => navigator.clipboard.writeText("npx rencanangodingai init")}
               className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shrink-0 transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 min-h-[38px]"
             >
               <span>Salin Perintah CLI</span>
