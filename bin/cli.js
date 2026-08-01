@@ -186,7 +186,12 @@ Perintah:
           headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({ ref, status: "dikerjakan" })
         });
-        console.log(`Task ${ref} status: dikerjakan`);
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+          console.error(`❌ Error (${res.status}): ${data.error || "Gagal update status task"}`);
+          process.exit(1);
+        }
+        console.log(`✅ Task ${ref} status: dikerjakan`);
       } catch (err) {
         console.error("Gagal update task start:", err.message);
       }
@@ -201,7 +206,12 @@ Perintah:
           headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({ ref, status: "selesai" })
         });
-        console.log(`Task ${ref} status: selesai`);
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+          console.error(`❌ Error (${res.status}): ${data.error || "Gagal update status task"}`);
+          process.exit(1);
+        }
+        console.log(`✅ Task ${ref} status: selesai`);
       } catch (err) {
         console.error("Gagal update task complete:", err.message);
       }
@@ -217,7 +227,12 @@ Perintah:
           headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({ ref, status: "gagal", failReason: reason })
         });
-        console.log(`Task ${ref} status: gagal (${reason})`);
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+          console.error(`❌ Error (${res.status}): ${data.error || "Gagal update status task"}`);
+          process.exit(1);
+        }
+        console.log(`✅ Task ${ref} status: gagal (${reason})`);
       } catch (err) {
         console.error("Gagal update task fail:", err.message);
       }
