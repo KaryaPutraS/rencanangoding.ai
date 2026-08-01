@@ -1,6 +1,10 @@
 {
   "name": "rencanangoding-ai",
   "private": true,
+  "bin": {
+    "rencanangodingai": "./bin/cli.js",
+    "rencanangoding": "./bin/cli.js"
+  },
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
