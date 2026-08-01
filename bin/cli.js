@@ -67,15 +67,16 @@ Perintah:
   }
 
   if (command === "init") {
-    const skillContent = `# RencanaNgodingAI Skill Instruction for Coding Agents
+    const skillContent = `# RencanaNgodingAI Skill Instruction for Coding Agents (Phase Auto-Pilot Mode)
 
 ## 🔴 ATURAN UTAMA LOKASI FOLDER PROYEK:
 1. SELALU buat file, folder, komponen, dan kode proyek LANGSUNG di DIREKTORI KERJA SAAT INI (Current Working Directory: \`./\`). JANGAN PERNAH membuat file/folder di direktori temporary/temp (\`$env:TEMP\` atau \`AppData\\Local\\Temp\`)!
-2. Jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task next --plan <plan_id> --json\` untuk mengambil task berikutnya.
-3. Jika \`checkpoint: true\` dikembalikan, kamu WAJIB BERHENTI dan melapor kepada user! Jangan eksekusi \`task start\` otomatis.
-4. Jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task start <ref>\` saat mulai mengerjakan task.
-5. Setelah selesai dan terverifikasi, jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task complete <ref>\`.
-6. Jika menemui error yang tidak bisa diselesaikan, jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task fail <ref> "<alasan>"\`.
+2. MODE AUTO-PILOT PER FASE: Kerjakan seluruh task dalam 1 FASE secara otomatis tanpa berhenti atau meminta konfirmasi di setiap task tunggal!
+3. Jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task next --plan <plan_id> --json\` untuk mengambil task berikutnya.
+4. Jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task start <ref> --plan <plan_id>\` saat mulai mengerjakan task.
+5. Setelah tuntas & lulus verifikasi build/lint/test, jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task complete <ref> --plan <plan_id>\`.
+6. AUTO-PILOT LOOP: LANGSUNG lanjut ke \`task next\` berikutnya tanpa menunggu konfirmasi user! HANYA BERHENTI setelah SATU FASE BERHASIL SELESAI (atau saat berganti layer) untuk memberi kesempatan user mencoba hasil 1 Fase secara utuh di browser.
+7. Jika menemui error yang tidak bisa diselesaikan, jalankan \`npx github:KaryaPutraS/rencanangoding.ai#main task fail <ref> "<alasan>" --plan <plan_id>\`.
 `;
 
     // 1. Claude Code skill
