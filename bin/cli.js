@@ -51,6 +51,9 @@ Perintah:
     return;
   }
 
+  const config = loadConfig();
+  const authHeaders = config.token ? { Authorization: `Bearer ${config.token}` } : {};
+
   if (command === "login") {
     const tokenIdx = args.indexOf("--token") !== -1 ? args.indexOf("--token") : args.indexOf("-t");
     const token = tokenIdx !== -1 ? args[tokenIdx + 1] : args[1];
@@ -103,8 +106,12 @@ Perintah:
     if (subCmd === "get" && planId) {
       saveConfig({ activePlanId: planId });
       try {
-        const res = await fetch(`${getApiUrl()}/api/plans/${planId}`);
+        const res = await fetch(`${getApiUrl()}/api/plans/${planId}`, { headers: authHeaders });
         const data = await res.json();
+        if (!res.ok || data.success === false) {
+          console.error(`❌ Error (${res.status}): ${data.error || "Gagal mengambil detail plan"}`);
+          process.exit(1);
+        }
         console.log(JSON.stringify(data, null, 2));
       } catch (err) {
         console.error("Gagal terhubung ke server:", err.message);
@@ -115,7 +122,6 @@ Perintah:
 
   if (command === "task") {
     const subCmd = args[1];
-    const config = loadConfig();
 
     let planFlagIdx = args.indexOf("--plan");
     let planId = planFlagIdx !== -1 ? args[planFlagIdx + 1] : config.activePlanId;
@@ -126,9 +132,20 @@ Perintah:
         process.exit(1);
       }
       try {
-        const res = await fetch(`${getApiUrl()}/api/plans/${planId}`);
+        const res = await fetch(`${getApiUrl()}/api/plans/${planId}`, { headers: authHeaders });
         const data = await res.json();
+
+        if (!res.ok || data.success === false) {
+          console.error(`❌ Error (${res.status}): ${data.error || "Akses ditolak"}`);
+          process.exit(1);
+        }
+
         const tasks = data.tasks || [];
+        if (tasks.length === 0) {
+          console.log(args.includes("--json") ? JSON.stringify({ done: true, message: "Belum ada task yang digenerate untuk plan ini." }, null, 2) : "Belum ada task yang digenerate untuk plan ini.");
+          return;
+        }
+
         const pendingTask = tasks.find((t) => t.status !== "selesai");
 
         if (!pendingTask) {
@@ -166,7 +183,7 @@ Perintah:
       try {
         const res = await fetch(`${getApiUrl()}/api/plans/${planId}/tasks`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({ ref, status: "dikerjakan" })
         });
         console.log(`Task ${ref} status: dikerjakan`);
@@ -181,7 +198,7 @@ Perintah:
       try {
         const res = await fetch(`${getApiUrl()}/api/plans/${planId}/tasks`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({ ref, status: "selesai" })
         });
         console.log(`Task ${ref} status: selesai`);
@@ -197,7 +214,7 @@ Perintah:
       try {
         const res = await fetch(`${getApiUrl()}/api/plans/${planId}/tasks`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...authHeaders },
           body: JSON.stringify({ ref, status: "gagal", failReason: reason })
         });
         console.log(`Task ${ref} status: gagal (${reason})`);
