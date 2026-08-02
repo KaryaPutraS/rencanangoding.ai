@@ -31,48 +31,84 @@ export function ImplementationModal({
   const cliToken = `rng_${planId.slice(0, 12)}_${Date.now().toString(36)}`;
   const serverUrl = typeof window !== "undefined" ? window.location.origin : "http://localhost:7518";
 
-  // Single comprehensive 1-click instruction prompt for AI Agents (OpenCode, Claude Code, Cursor, Kimi, DeepSeek)
-  const fullAgentPrompt = `Kamu akan mengerjakan task dari RencanaNgodingAI lewat CLI \`npx rencanangodingai\` (atau \`npx github:KaryaPutraS/rencanangoding.ai#main\`).
+  const RNG = "npx github:KaryaPutraS/rencanangoding.ai#main";
 
-🔴 ATURAN LOKASI FOLDER PROYEK:
-Seluruh file, folder, komponen, dan kode proyek HARUS DIBUAT LANGSUNG di direktori kerja saat ini (\`./\` atau Current Working Directory proyek yang sedang kamu buka). JANGAN PERNAH membuat atau menulis kode di direktori temporary/temp (\`$env:TEMP\` atau \`AppData\\Local\\Temp\`)!
+  // One prompt, pasted once, that runs an entire phase unattended. Same flow as the hosted
+  // service — every command below matches the CLI's real argument shape.
+  const fullAgentPrompt = `Kamu adalah AI coding agent yang mengerjakan proyek ini memakai task board RencanaNgodingAI (self-host) lewat CLI \`${RNG}\`.
 
-Prasyarat: Node.js (cek \`node -v\`). CLI otomatis ter-download saat dijalankan via npx — tidak perlu install manual.
+━━━ ATURAN WAJIB ━━━
+1. LOKASI: seluruh file, folder, dan kode dibuat LANGSUNG di direktori kerja saat ini (\`./\`). JANGAN PERNAH menulis ke direktori temporary (\`$env:TEMP\`, \`AppData\\Local\\Temp\`, \`/tmp\`).
+2. OTONOM PER FASE: kerjakan SEMUA task dalam satu fase berturut-turut tanpa bertanya apa pun ke user. Kamu hanya berhenti di BATAS FASE — bukan di setiap task.
+3. Jangan pernah menandai task selesai sebelum kodenya benar-benar jalan.
 
-Langkah 1 — login + pasang skill (sekali saja):
-npx rencanangodingai login --token ${cliToken}    # simpan token (tanpa browser)
-npx rencanangodingai init     # pasang skill "rencanangodingai" ke agent (auto-load)
+Prasyarat: Node.js (\`node -v\`). Server self-host kamu harus hidup di ${serverUrl}.
 
-Langkah 2 — baca PRD dulu (konteks proyek, sekali saja):
-npx rencanangodingai plan get ${planId}    # PRD lengkap → tujuan, fitur, tech stack
+Set dulu alamat server di terminal yang sama:
+   export RENCANANGODING_SERVER_URL=${serverUrl}
+   # Windows PowerShell: $env:RENCANANGODING_SERVER_URL="${serverUrl}"
 
-Langkah 3 — LOOP: kerjakan SATU task per satu, BERHENTI tiap ganti fase/layer.
-Server yang pilih task berikutnya (frontend & HALAMAN PERTAMA diselesaikan dulu di atas data tiruan/stub; backend menyusul). Kamu TIDAK perlu lihat seluruh backlog.
-INGAT \`layer\` (frontend/backend) & \`phase.current\` task yang BARU kamu selesaikan.
+━━━ LANGKAH 1 — SIAPKAN (sekali saja) ━━━
+${RNG} login --token ${cliToken}
+${RNG} init
+${RNG} plan get ${planId}
 
-Ulangi siklus ini:
-  npx rencanangodingai task next --plan ${planId} --json   # SATU task berikutnya
-      # respons: { done, task:{ref,title,...}, progress:{ phase:{current,total}, layer, page, ... } }
-      # kerjakan dari title + PRD + baca kode; TAK ADA field prompt/description.
-      # kalau "done": true → SEMUA task selesai. BERHENTI & lapor ke user.
-      #
-      # ⛔ CHECKPOINT (SEBELUM \`task start\`): bandingkan \`progress\` task ini dengan
-      #    task yang BARUSAN selesai. Kalau \`layer\` BEDA (mis. frontend→backend)
-      #    ATAU \`phase.current\` NAIK → JANGAN mulai. BERHENTI, lapor apa yang beres
-      #    (mis. "✅ Frontend fase 1 selesai — coba klik-klik dulu di browser"), lalu
-      #    TUNGGU user bilang "lanjut". \`task next\` PERTAMA di sesi ini (belum ada
-      #    task sebelumnya) BUKAN checkpoint → langsung kerjakan.
-  npx rencanangoding task start <ref> --plan ${planId}                     # tandai mulai
-  → kerjakan HANYA task ini sampai kelar (eksplor kode dulu, ikuti polanya).
-    JANGAN sentuh task lain / baca task lain dulu.
-  npx rencanangoding task complete <ref> --plan ${planId}                  # tandai selesai
-  → balik ke \`task next\` untuk task berikutnya.
+Baca PRD-nya sampai paham: tujuan produk, tech stack, dan daftar fase. Siapkan project skeleton sesuai tech stack di PRD sebelum mulai task pertama.
 
-Kalau ke-block: npx rencanangoding task fail <ref> "alasan singkat" --plan ${planId} lalu lanjut \`task next\`.
+━━━ LANGKAH 2 — LOOP OTONOM ━━━
+Ulangi terus sendiri, tanpa menunggu balasan user:
 
-Kenapa berhenti tiap fase/layer: user bisa verifikasi hasil tiap layer (mis. klik-klik UI frontend di atas data tiruan) sebelum agent lanjut ke backend / fase berikutnya.
-Kenapa satu-per-satu: tiap task dapat konteks bersih & fokus penuh → hasil lebih tajam.
-Percayakan urutan ke \`task next\` — jangan borong banyak task sekaligus.`;
+  A. Ambil task berikutnya:
+     ${RNG} task next --plan ${planId} --json
+
+     Perhatikan field di dalam "task":
+       phase                → nomor fase task ini
+       phaseTasksDone       → sudah berapa task selesai di fase ini
+       phaseTasksTotal      → total task di fase ini
+       isLastTaskOfPhase    → true berarti ini task TERAKHIR yang tersisa di fase ini
+       nextPhase            → nomor fase berikutnya (null = ini fase terakhir)
+       previouslyFailed     → true berarti task ini pernah ditandai gagal
+       failCount            → sudah berapa kali task ini gagal
+       deferred             → true berarti task ini sudah gagal 2x dan diparkir
+
+     • "done": true → seluruh task selesai. Loncat ke LANGKAH 4.
+     • deferred true → semua pekerjaan lain sudah habis, sisanya cuma task yang berulang kali gagal. BERHENTI dan laporkan ke user apa yang menghalangi. Jangan diulang terus.
+     • previouslyFailed true (deferred masih false) → ini kesempatan retry, konteks di sekitarnya sekarang sudah ada. Coba sekali lagi dengan sungguh-sungguh.
+
+  B. Tandai mulai:
+     ${RNG} task start <ref> --plan ${planId}
+
+  C. Kerjakan task itu sampai tuntas: tulis kodenya, buat file yang dibutuhkan, sambungkan ke kode yang sudah ada.
+
+  D. Tandai selesai (pakai <ref> task-nya, contoh BE-01 — BUKAN plan id):
+     ${RNG} task complete <ref> --plan ${planId}
+
+  E. Kalau benar-benar buntu (dependency tidak tersedia, spesifikasi bertentangan):
+     ${RNG} task fail <ref> "alasan singkat" --plan ${planId}
+     lalu LANGSUNG lanjut ke task berikutnya. Task yang gagal otomatis dipindah ke belakang fasenya untuk dicoba ulang sekali; kalau gagal lagi ia diparkir di paling akhir supaya fase-fase berikutnya tetap jalan. Kamu tidak akan tersangkut di task yang sama.
+
+  F. Batas fase — kembali ke A, KECUALI salah satu ini terjadi:
+       • task yang barusan kamu selesaikan punya isLastTaskOfPhase = true, ATAU
+       • nomor "phase" pada task baru BERBEDA dengan fase task sebelumnya
+     Kalau salah satunya terjadi, fase sebelumnya sudah tuntas → jalankan LANGKAH 3 dulu, baru teruskan.
+     Selain itu: langsung kembali ke A. JANGAN bertanya ke user, JANGAN minta konfirmasi, JANGAN berhenti di tengah fase.
+
+━━━ LANGKAH 3 — VERIFIKASI DI UJUNG FASE ━━━
+Setiap satu fase tuntas, jalankan verifikasi menyeluruh untuk fase itu:
+  1. Install/build:  \`npm install\` lalu \`npm run build\` (atau padanan di tech stack proyek)
+  2. Lint & test bila ada:  \`npm run lint\`, \`npm test\`
+  3. Jalankan aplikasinya dan pastikan hidup tanpa error
+  4. Cek sendiri alur fitur yang baru dibangun di fase ini sesuai PRD
+
+  • VERIFIKASI GAGAL → perbaiki sendiri, ulangi verifikasi. Ini bagian dari pekerjaanmu, bukan alasan berhenti.
+  • VERIFIKASI LULUS → tulis ringkasan singkat fase tersebut (apa yang dibangun, file penting, cara mencobanya), lalu:
+      - nextPhase masih ada angka → LANGSUNG kembali ke LANGKAH 2 untuk fase berikutnya tanpa menunggu jawaban user.
+      - nextPhase null → lanjut LANGKAH 4.
+
+━━━ LANGKAH 4 — SELESAI ━━━
+Jalankan verifikasi penuh sekali lagi, lalu laporkan ke user: fitur yang sudah jadi, cara menjalankan proyek, dan task apa pun yang berstatus gagal beserta alasannya.
+
+Mulai sekarang dari LANGKAH 1 dan jalan terus sampai selesai.`;
 
   const downloadPrdFile = () => {
     const blob = new Blob([prdMarkdown], { type: "text/markdown;charset=utf-8" });

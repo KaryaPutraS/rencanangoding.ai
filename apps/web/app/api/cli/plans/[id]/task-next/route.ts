@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
 import { dbStore } from "@rencanangoding/db";
+import { prepareTasksForAgent, summarizePhases } from "@rencanangoding/shared";
 
-export async function GET(
-  req: Request,
-  props: { params: Promise<{ id: string }> }
-) {
+/**
+ * Next task for the CLI agent runner.
+ *
+ * Two behaviours were corrected here so a self-hosted run matches the hosted one:
+ *
+ *  - It used to only consider tasks with status "belum_mulai". A task the agent had
+ *    marked "gagal" was therefore skipped and never retried, and a task left
+ *    "dikerjakan" by an interrupted run was abandoned. Both are picked up now.
+ *
+ *  - It used to raise a checkpoint whenever the layer changed from frontend to backend,
+ *    which happens *inside* a phase — so the agent stopped to ask for verification in the
+ *    middle of the work. A checkpoint now means exactly one thing: a phase finished.
+ */
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await props.params;
 
@@ -13,70 +24,50 @@ export async function GET(
       return NextResponse.json({ success: false, error: "Plan tidak ditemukan" }, { status: 404 });
     }
 
-    const tasks = await dbStore.getTasks(id);
+    const rawTasks = await dbStore.getTasks(id);
 
-    // Filter tasks with 'belum_mulai' status
-    const pendingTasks = tasks
-      .filter((t) => t.status === "belum_mulai")
-      .sort((a, b) => {
-        const aPhase = typeof a.phase === "number" ? a.phase : 1;
-        const bPhase = typeof b.phase === "number" ? b.phase : 1;
-        if (aPhase !== bPhase) return aPhase - bPhase;
-        if (a.layer !== b.layer) return a.layer === "frontend" ? -1 : 1;
-        const aOrder = typeof a.orderIndex === "number" ? a.orderIndex : 0;
-        const bOrder = typeof b.orderIndex === "number" ? b.orderIndex : 0;
-        return aOrder - bOrder;
-      });
-
-    if (pendingTasks.length === 0) {
+    if (rawTasks.length === 0) {
       return NextResponse.json({
         success: true,
         done: true,
-        message: "🎉 Semua task dalam plan ini telah selesai dikerjakan!"
+        message: "Belum ada task yang digenerate untuk plan ini.",
       });
     }
 
-    const nextTask = pendingTasks[0];
+    const ordered = prepareTasksForAgent(rawTasks);
+    const phases = summarizePhases(rawTasks);
+    const nextTask = ordered.find((t) => t.status !== "selesai");
 
-    // Find last completed task to determine if a checkpoint boundary is crossed
-    const completedTasks = tasks
-      .filter((t) => t.status === "selesai")
-      .sort((a, b) => {
-        const timeA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const timeB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+    if (!nextTask) {
+      return NextResponse.json({
+        success: true,
+        done: true,
+        message: "🎉 Semua task dalam plan ini telah selesai dikerjakan!",
+        phases,
       });
-
-    const lastCompleted = completedTasks[0];
-
-    let checkpoint = false;
-    let checkpointMessage = "";
-
-    if (lastCompleted) {
-      if (lastCompleted.phase !== nextTask.phase) {
-        checkpoint = true;
-        checkpointMessage = `🛑 CHECKPOINT: Fase ${lastCompleted.phase} telah selesai! Harap uji coba aplikasi sebelum melanjutkan ke Fase ${nextTask.phase}.`;
-      } else if (lastCompleted.layer === "frontend" && nextTask.layer === "backend") {
-        checkpoint = true;
-        checkpointMessage = `🛑 CHECKPOINT: Implementasi Frontend Fase ${nextTask.phase} selesai — coba klik-klik dulu UI di browser sebelum memasang Backend API!`;
-      }
     }
+
+    // A checkpoint means a whole phase is finished: every earlier phase is done and this
+    // task opens a new one.
+    const currentPhase = nextTask.phase ?? 1;
+    const previousPhase = phases.filter((p) => p.phase < currentPhase).pop();
+    const openedNewPhase = Boolean(previousPhase?.completed && nextTask.phaseTasksDone === 0);
 
     return NextResponse.json({
       success: true,
       done: false,
-      task: {
-        id: nextTask.id,
-        ref: nextTask.ref,
-        title: nextTask.title,
-        description: nextTask.description,
+      task: nextTask,
+      progress: {
+        current: rawTasks.filter((t) => t.status === "selesai").length + 1,
+        total: rawTasks.length,
         layer: nextTask.layer,
-        phase: nextTask.phase,
-        priority: nextTask.priority,
-        status: nextTask.status
+        phase: currentPhase,
       },
-      checkpoint,
-      message: checkpointMessage || undefined
+      phases,
+      checkpoint: openedNewPhase,
+      message: openedNewPhase
+        ? `🛑 CHECKPOINT: Fase ${previousPhase!.phase} selesai. Jalankan verifikasi (build/lint/test) dulu, lalu lanjut Fase ${currentPhase}.`
+        : undefined,
     });
   } catch (err: any) {
     return NextResponse.json(

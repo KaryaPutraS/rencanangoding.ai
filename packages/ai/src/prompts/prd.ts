@@ -1,6 +1,7 @@
 import { generateText } from "ai";
-import { FeatureNode } from "@rencanangoding/shared";
-import { getAiModel, AiConfig } from "../providers";
+import type { FeatureNode } from "@rencanangoding/shared";
+import { getAiModel, type AiConfig } from "../providers";
+import { normalizeUsage, type AiUsage } from "../generateStructured";
 
 export async function generatePrdMarkdown(
   idea: string,
@@ -9,7 +10,7 @@ export async function generatePrdMarkdown(
   answersSummary: string,
   language: string = "id",
   config?: AiConfig
-): Promise<string> {
+): Promise<{ markdown: string; usage?: AiUsage; source: "ai" | "fallback" }> {
   const modelInfo = getAiModel(config);
   const isIndo = language === "id";
 
@@ -24,7 +25,7 @@ export async function generatePrdMarkdown(
   if (modelInfo.type !== "mock" && modelInfo.model) {
     try {
       const result = await generateText({
-        model: modelInfo.model,
+        model: modelInfo.model as any,
         prompt: `Anda adalah Principal Technical Product Manager & Lead System Architect.
 Tugas Anda adalah membuat dokumen Product Requirement Document (PRD) yang komprehensif, sangat rapi, dan siap dieksekusi langsung oleh AI Coding Agent (seperti Claude Code, Cursor, Codex).
 
@@ -84,7 +85,7 @@ Gunakan Mermaid Diagram (\`\`\`mermaid graph TD ... \`\`\`) untuk memetakan alur
 - Database & ORM
 - External APIs, Libraries, & Services`
       });
-      return result.text;
+      return { markdown: result.text, usage: normalizeUsage(result.usage), source: "ai" };
     } catch (err) {
       console.warn("AI generation fallback to mock for PRD:", err);
     }
@@ -93,7 +94,7 @@ Gunakan Mermaid Diagram (\`\`\`mermaid graph TD ... \`\`\`) untuk memetakan alur
   // Mock PRD Generator with rich diagrams
   const title = idea.split("\n")[0].slice(0, 45) || "Aplikasi Impian";
 
-  return `# ${title} — Product Requirement Document (PRD)
+  const fallbackMarkdown = `# ${title} — Product Requirement Document (PRD)
 
 > Dokumen spesifikasi teknis, arsitektur sistem, dan skema database ini disusun secara otomatis oleh **RencanaNgoding.ai** untuk siap dieksekusi secara presisi oleh AI Coding Agent (Claude Code / Cursor / Codex).
 
@@ -140,12 +141,12 @@ ${featureSummaryStr}
 
 \`\`\`mermaid
 graph TD
-    A[Landing Page: Input Ide Aplikasi] --> B[Discovery Questions Wizard]
-    B --> C[Generate Mind Map Fitur & Sub-fitur]
-    C --> D[Generate Dokumen PRD + Diagram Arsitektur & ERD]
-    D --> E[Refine PRD via AI Chat Revisi / Edit Manual]
-    E --> F[Generate Task Breakdown & Kanban Board]
-    F --> G[Mulai Eksekusi CLI Runner / Prompt Agent]
+    A["Landing Page: Input Ide Aplikasi"] --> B["Discovery Questions Wizard"]
+    B --> C["Generate Mind Map Fitur & Sub-fitur"]
+    C --> D["Generate Dokumen PRD + Diagram Arsitektur & ERD"]
+    D --> E["Refine PRD via AI Chat Revisi / Edit Manual"]
+    E --> F["Generate Task Breakdown & Kanban Board"]
+    F --> G["Mulai Eksekusi CLI Runner / Prompt Agent"]
 \`\`\`
 
 ---
@@ -261,4 +262,6 @@ erDiagram
 - **Persistence & ORM**: Drizzle ORM + Persistent JSON Store fallback
 - **AI Integration**: Vercel AI SDK (\`ai\` package) dengan Anthropic & OpenAI adapters
 `;
+
+  return { markdown: fallbackMarkdown, source: "fallback" };
 }

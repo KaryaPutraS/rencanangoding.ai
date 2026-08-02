@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbStore } from "@rencanangoding/db";
+import { prepareTasksForAgent, summarizePhases } from "@rencanangoding/shared";
 
 export async function GET(
   req: Request,
@@ -16,8 +17,12 @@ export async function GET(
     const discovery = await dbStore.getDiscoveryAnswers(id);
     const features = await dbStore.getFeatures(id);
     const prd = await dbStore.getPrd(id);
-    const tasks = await dbStore.getTasks(id);
+    const rawTasks = await dbStore.getTasks(id);
     const chatMessages = await dbStore.getChatMessages(id);
+
+    // The CLI takes the first un-finished task straight off this list, so the ordering and
+    // the phase fields added here are what drive the agent's phase-by-phase run.
+    const tasks = prepareTasksForAgent(rawTasks);
 
     return NextResponse.json({
       success: true,
@@ -26,6 +31,8 @@ export async function GET(
       features,
       prd,
       tasks,
+      /** Per-phase rollup so an agent can report progress without re-deriving it. */
+      phases: summarizePhases(rawTasks),
       chatMessages
     });
   } catch (err: any) {

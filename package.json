@@ -9,12 +9,18 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "verify": "npm run verify:providers && npm run verify:agents && npm run verify:cli",
+    "verify:agents": "node --experimental-strip-types --no-warnings scripts/verify-agents.mjs",
+    "verify:providers": "node --experimental-strip-types --no-warnings scripts/verify-providers.mjs",
+    "verify:cli": "node --experimental-strip-types --no-warnings scripts/verify-cli.mjs"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
     "turbo": "^2.4.4",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "ai": "^7.0.42",
+    "zod": "^4.4.3"
   },
   "packageManager": "pnpm@10.13.1",
   "engines": {

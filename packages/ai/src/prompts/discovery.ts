@@ -1,5 +1,5 @@
-import { generateObject } from "ai";
 import { z } from "zod";
+import { generateStructuredWithUsage, type AiUsage } from "../generateStructured";
 import { getAiModel, AiConfig } from "../providers";
 
 export const AdaptiveQuestionSchema = z.object({
@@ -12,7 +12,7 @@ export const DiscoveryResponseSchema = z.object({
   questions: z.array(AdaptiveQuestionSchema).length(5)
 });
 
-export type DiscoveryResponse = z.infer<typeof DiscoveryResponseSchema>;
+export type DiscoveryResponse = z.infer<typeof DiscoveryResponseSchema> & { usage?: AiUsage };
 
 export async function generateDiscoveryQuestions(
   idea: string,
@@ -23,8 +23,8 @@ export async function generateDiscoveryQuestions(
 
   if (modelInfo.type !== "mock" && modelInfo.model) {
     try {
-      const result = await generateObject({
-        model: modelInfo.model,
+      const { object, usage } = await generateStructuredWithUsage({
+        model: modelInfo.model as any,
         schema: DiscoveryResponseSchema,
         prompt: `Anda adalah Product Strategist AI senior.
 User ingin membuat aplikasi dengan ide: "${idea}"
@@ -33,7 +33,7 @@ Bahasa output: ${language === "id" ? "Bahasa Indonesia" : "English"}.
 Buatkan 5 pertanyaan adaptif mendalam untuk memperjelas kebutuhan aplikasi ini (target user, model bisnis/auth, integrasi 3rd party, prioritas utama MVP, & skalabilitas).
 Setiap pertanyaan WAJIB disertai 3-4 chip pilihan jawaban cepat yang kontekstual dan relevan dengan ide tersebut (BUKAN pilihan generik).`
       });
-      return result.object;
+      return { ...object, usage };
     } catch (err) {
       console.warn("AI generation fallback to mock for discovery questions:", err);
     }

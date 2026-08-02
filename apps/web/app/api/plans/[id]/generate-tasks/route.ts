@@ -27,10 +27,19 @@ export async function POST(
     }
 
     const aiConfig = extractAiConfig(req);
-    const generatedTasks = await generateTaskBreakdown(id, features, plan.outputLanguage, aiConfig);
+    const discovery = await dbStore.getDiscoveryAnswers(id);
+    const answersSummary = discovery.map((a) => `Q: ${a.questionText} -> A: ${a.answerText}`).join("; ");
+
+    const { tasks: generatedTasks, source, fallbackReason } = await generateTaskBreakdown(
+      id,
+      features,
+      plan.outputLanguage || "id",
+      aiConfig,
+      { idea: plan.rawIdea, answersSummary }
+    );
     const saved = await dbStore.saveTasks(id, generatedTasks);
 
-    return NextResponse.json({ success: true, tasks: saved });
+    return NextResponse.json({ success: true, tasks: saved, source, fallbackReason });
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "Gagal merancang breakdown task" },

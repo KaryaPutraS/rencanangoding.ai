@@ -99,6 +99,8 @@ export interface TaskItem {
   priority: TaskPriority;
   status: TaskStatus;
   failReason?: string | null;
+  /** How many times the agent has marked this task failed; drives retry-then-park order. */
+  failCount?: number;
   orderIndex: number;
   createdAt: string;
   updatedAt: string;
@@ -172,3 +174,5 @@ export const PrdRevisionChatSchema = z.object({
   message: z.string().min(1, "Pesan tidak boleh kosong")
 });
 
+
+export * from "./cliTasks";

@@ -1,18 +1,19 @@
 import { generateText } from "ai";
-import { getAiModel, AiConfig } from "../providers";
+import { getAiModel, type AiConfig } from "../providers";
+import { normalizeUsage, type AiUsage } from "../generateStructured";
 
 export async function processPrdRevision(
   currentPrd: string,
   userInstruction: string,
   language: string = "id",
   config?: AiConfig
-): Promise<{ replyText: string; updatedPrd?: string }> {
+): Promise<{ replyText: string; updatedPrd?: string; usage?: AiUsage }> {
   const modelInfo = getAiModel(config);
 
   if (modelInfo.type !== "mock" && modelInfo.model) {
     try {
       const result = await generateText({
-        model: modelInfo.model,
+        model: modelInfo.model as any,
         prompt: `Anda adalah AI Co-pilot Product Manager.
 Dokumen PRD saat ini:
 \`\`\`markdown
@@ -44,7 +45,8 @@ Tugas Anda:
 
       return {
         replyText: replyText || "PRD berhasil diperbarui sesuai instruksi Anda.",
-        updatedPrd
+        updatedPrd,
+        usage: normalizeUsage(result.usage)
       };
     } catch (err) {
       console.warn("AI generation fallback to mock for PRD revision:", err);

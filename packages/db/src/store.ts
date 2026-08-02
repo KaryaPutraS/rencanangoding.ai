@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import * as crypto from "crypto";
-import {
+import type {
   Plan,
   DiscoveryQuestionAnswer,
   FeatureNode,
@@ -451,22 +451,38 @@ class PersistentDataStore {
     return this.tasksMap.get(planId) || [];
   }
 
-  async updateTaskStatus(
+  /** Generic field update, used by the task board API the CLI agent talks to. */
+  async updateTask(
     planId: string,
     ref: string,
-    status: TaskItem["status"],
-    failReason?: string
+    updates: Partial<TaskItem>
   ): Promise<TaskItem | null> {
     const list = this.tasksMap.get(planId) || [];
     const task = list.find((t) => t.ref === ref);
     if (!task) return null;
-    task.status = status;
-    if (failReason !== undefined) {
-      task.failReason = failReason;
-    }
-    task.updatedAt = new Date().toISOString();
+    Object.assign(task, updates, { updatedAt: new Date().toISOString() });
     this.saveToDisk();
     return task;
+  }
+
+  async updateTaskStatus(
+    planId: string,
+    ref: string,
+    status: TaskItem["status"],
+    failReason?: string | null
+  ): Promise<TaskItem | null> {
+    const previousFailures = Number(
+      (this.tasksMap.get(planId) || []).find((t) => t.ref === ref)?.failCount
+    ) || 0;
+
+    return this.updateTask(planId, ref, {
+      status,
+      ...(failReason !== undefined ? { failReason } : {}),
+      // Attempt count is what lets a repeatedly-failing task be parked behind the
+      // remaining phases instead of blocking them forever.
+      failCount:
+        status === "gagal" ? previousFailures + 1 : status === "selesai" ? 0 : previousFailures,
+    });
   }
 
   async resetTaskProgress(planId: string): Promise<TaskItem[]> {

@@ -33,22 +33,28 @@ export async function POST(
     const answersSummary = discovery.map((a) => `Q: ${a.questionText} -> A: ${a.answerText}`).join("; ");
 
     const aiConfig = extractAiConfig(req);
-    const generatedFeatures = await generateFeatureStructure(
+
+    // Revisions reuse the current structure so feature ids stay stable and the tasks
+    // already linked to them survive a regeneration.
+    const existingFeatures = revisionPrompt ? await dbStore.getFeatures(id) : [];
+
+    const { features: generatedFeatures, source, fallbackReason } = await generateFeatureStructure(
       plan.rawIdea,
       answersSummary,
-      plan.outputLanguage,
+      plan.outputLanguage || "id",
       aiConfig,
-      revisionPrompt
+      revisionPrompt,
+      existingFeatures
     );
 
-    const featuresWithPlanId = generatedFeatures.map((f) => ({
+    const featuresWithPlanId = generatedFeatures.map((f: any) => ({
       ...f,
       planId: id
     }));
 
     const saved = await dbStore.saveFeatures(id, featuresWithPlanId);
 
-    return NextResponse.json({ success: true, features: saved });
+    return NextResponse.json({ success: true, features: saved, source, fallbackReason });
   } catch (err: any) {
     return NextResponse.json(
       { success: false, error: err.message || "Gagal merancang struktur fitur" },

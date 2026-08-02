@@ -4,6 +4,26 @@
 
 RencanaNgoding.ai adalah platform perencanaan arsitektur aplikasi yang mengubah deskripsi produk menjadi spesifikasi teknis lengkap melalui pipeline: **Discovery → Struktur Fitur → PRD Studio → Task Breakdown → Kanban Board**.
 
+## 🆓 Gratis Sepenuhnya, Setara Versi Cloud
+
+Versi self-host ini memakai **mesin AI yang sama persis** dengan layanan cloud
+[rencanangodingai.site](https://rencanangodingai.site) — prompt, penyusun mind map, pemecah task,
+dan alur CLI agent-nya identik, jadi hasilnya juga setara.
+
+Bedanya cuma satu: **tidak ada batasan apa pun di sini.**
+
+| | Cloud | Self-host (repo ini) |
+|---|---|---|
+| Jumlah PRD | dibatasi kuota | **tanpa batas** |
+| Chat revisi AI | dibatasi kuota | **tanpa batas** |
+| Instruksi eksekusi CLI | perlu aktivasi | **selalu terbuka** |
+| Paket / pembayaran | ada | **tidak ada sama sekali** |
+| API key AI | dikelola layanan | **punyamu sendiri** |
+
+Kamu memakai API key milikmu sendiri (DeepSeek, OpenAI, Anthropic, Gemini, atau Groq) yang
+diisi lewat menu Settings atau environment variable. Tidak ada kuota, tidak ada penguncian
+fitur, tidak ada halaman pembayaran — semua kode paywall memang tidak ada di repo ini.
+
 ---
 
 ## ⚡ 1-Line Quick Install (Server / VPS)
