@@ -24,13 +24,6 @@ export interface DbUser {
   createdAt: string;
 }
 
-export interface DbOtp {
-  email: string;
-  code: string;
-  expiresAt: number;
-  verified: boolean;
-}
-
 export interface DbSession {
   token: string;
   userId: string;
@@ -45,7 +38,6 @@ interface PersistedState {
   tasks: Record<string, TaskItem[]>;
   chatMessages: Record<string, AiChatMessage[]>;
   users?: DbUser[];
-  otps?: Record<string, DbOtp>;
   sessions?: Record<string, DbSession>;
   appSettings?: AppSettings;
 }
@@ -82,7 +74,6 @@ class PersistentDataStore {
   private chatMap = new Map<string, AiChatMessage[]>();
   private usersMap = new Map<string, DbUser>(); // key: email
   private usersByIdMap = new Map<string, DbUser>(); // key: id
-  private otpsMap = new Map<string, DbOtp>(); // key: email
   private sessionsMap = new Map<string, DbSession>(); // key: token
   private appSettings: AppSettings | null = null;
 
@@ -107,7 +98,6 @@ class PersistentDataStore {
           this.usersMap.set(u.email.toLowerCase(), u);
           this.usersByIdMap.set(u.id, u);
         });
-        Object.entries(data.otps || {}).forEach(([k, v]) => this.otpsMap.set(k.toLowerCase(), v));
         Object.entries(data.sessions || {}).forEach(([k, v]) => this.sessionsMap.set(k, v));
         if (data.appSettings) this.appSettings = data.appSettings;
       }
@@ -142,9 +132,6 @@ class PersistentDataStore {
       const chatMessages: Record<string, AiChatMessage[]> = {};
       this.chatMap.forEach((v, k) => (chatMessages[k] = v));
 
-      const otps: Record<string, DbOtp> = {};
-      this.otpsMap.forEach((v, k) => (otps[k] = v));
-
       const sessions: Record<string, DbSession> = {};
       this.sessionsMap.forEach((v, k) => (sessions[k] = v));
 
@@ -156,7 +143,6 @@ class PersistentDataStore {
         tasks,
         chatMessages,
         users: Array.from(this.usersMap.values()),
-        otps,
         sessions,
         ...(this.appSettings ? { appSettings: this.appSettings } : {})
       };
@@ -227,99 +213,53 @@ class PersistentDataStore {
     return Boolean(dbUser && dbUser.passwordHash && dbUser.passwordHash.length > 0);
   }
 
-  async requestOtp(email: string): Promise<{ code: string; expiresAt: number; isExistingUser: boolean }> {
-    const cleanEmail = email.toLowerCase().trim();
-    // Cryptographically secure 6 digit numeric code
-    const code = crypto.randomInt(100000, 1000000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-    const isExistingUser = this.usersMap.has(cleanEmail);
-
-    const otpRecord: DbOtp = {
-      email: cleanEmail,
-      code,
-      expiresAt,
-      verified: false
-    };
-
-    this.otpsMap.set(cleanEmail, otpRecord);
-    this.saveToDisk();
-
-    return { code, expiresAt, isExistingUser };
-  }
-
-  async verifyOtp(email: string, code: string): Promise<{ success: boolean; isExistingUser: boolean; error?: string }> {
-    const cleanEmail = email.toLowerCase().trim();
-    const otp = this.otpsMap.get(cleanEmail);
-
-    if (!otp) {
-      return { success: false, isExistingUser: false, error: "Kode OTP belum diminta atau sudah kadaluarsa" };
-    }
-
-    if (Date.now() > otp.expiresAt) {
-      this.otpsMap.delete(cleanEmail);
-      this.saveToDisk();
-      return { success: false, isExistingUser: false, error: "Kode OTP sudah kadaluarsa, silakan minta kode baru" };
-    }
-
-    if (otp.code !== code.trim()) {
-      return { success: false, isExistingUser: false, error: "Kode OTP salah, mohon periksa kembali" };
-    }
-
-    otp.verified = true;
-    this.otpsMap.set(cleanEmail, otp);
-    this.saveToDisk();
-
-    const isExistingUser = this.usersMap.has(cleanEmail);
-    return { success: true, isExistingUser };
-  }
-
-  async createPasswordAndRegister(
+  /**
+   * Registers a local account with just an email and a password.
+   *
+   * Self-hosted installs run on the owner's own machine, so posting a one-time code to an
+   * inbox only added an SMTP dependency between them and their own app. There is no code
+   * step any more — but a password is still required, because the built-in tunnel can put
+   * this app on the public internet.
+   *
+   * Refuses to touch an account that already has a password: without an ownership check
+   * like OTP, silently overwriting one would let anyone take over an existing account by
+   * simply "registering" again.
+   */
+  async registerWithPassword(
     email: string,
-    otpCode: string,
     password: string,
     name?: string
   ): Promise<{ user: User; token: string }> {
     const cleanEmail = email.toLowerCase().trim();
-    const otp = this.otpsMap.get(cleanEmail);
 
-    if (!otp || !otp.verified || otp.code !== otpCode.trim()) {
-      throw new Error("Verifikasi OTP diperlukan sebelum membuat password");
+    if (!cleanEmail.includes("@")) {
+      throw new Error("Masukkan alamat email yang valid");
+    }
+    if (!password || password.length < 6) {
+      throw new Error("Password minimal 6 karakter");
     }
 
-    const passwordHash = hashPassword(password);
     const existing = this.usersMap.get(cleanEmail);
-    const now = new Date().toISOString();
-
-    let dbUser: DbUser;
-
-    if (existing) {
-      dbUser = {
-        ...existing,
-        passwordHash,
-        name: name || existing.name || cleanEmail.split("@")[0]
-      };
-    } else {
-      dbUser = {
-        id: crypto.randomUUID(),
-        email: cleanEmail,
-        passwordHash,
-        name: name || cleanEmail.split("@")[0],
-        createdAt: now
-      };
+    if (existing && existing.passwordHash) {
+      throw new Error("Email ini sudah terdaftar. Silakan masuk memakai passwordmu.");
     }
+
+    const now = new Date().toISOString();
+    const dbUser: DbUser = existing
+      ? { ...existing, passwordHash: hashPassword(password), name: name || existing.name || cleanEmail.split("@")[0] }
+      : {
+          id: crypto.randomUUID(),
+          email: cleanEmail,
+          passwordHash: hashPassword(password),
+          name: name || cleanEmail.split("@")[0],
+          createdAt: now
+        };
 
     this.usersMap.set(cleanEmail, dbUser);
     this.usersByIdMap.set(dbUser.id, dbUser);
-    this.otpsMap.delete(cleanEmail);
 
-    // Create session
     const token = `rng_sess_${crypto.randomBytes(24).toString("hex")}`;
-    const session: DbSession = {
-      token,
-      userId: dbUser.id,
-      createdAt: now
-    };
-    this.sessionsMap.set(token, session);
+    this.sessionsMap.set(token, { token, userId: dbUser.id, createdAt: now });
     this.saveToDisk();
 
     return {

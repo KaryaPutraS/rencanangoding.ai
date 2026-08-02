@@ -8,12 +8,6 @@ export interface AiSettings {
   provider: AiProvider;
   apiKey: string;
   modelName: string;
-  resendApiKey?: string;
-  smtpHost?: string;
-  smtpPort?: string;
-  smtpUser?: string;
-  smtpPass?: string;
-  emailFrom?: string;
 }
 
 const SETTINGS_KEY = "rencanangoding_ai_settings";
@@ -21,13 +15,7 @@ const SETTINGS_KEY = "rencanangoding_ai_settings";
 const DEFAULT_SETTINGS: AiSettings = {
   provider: "mock",
   apiKey: "",
-  modelName: "",
-  resendApiKey: "",
-  smtpHost: "",
-  smtpPort: "465",
-  smtpUser: "",
-  smtpPass: "",
-  emailFrom: '"RencanaNgoding.ai" <otp@ksatriyo.id>'
+  modelName: ""
 };
 
 export function getStoredAiSettings(): AiSettings {
@@ -64,17 +52,12 @@ export function useAiSettings() {
   return { settings, updateSettings, loaded };
 }
 
+/** Headers every AI call carries. The mail headers went away with the OTP flow. */
 export function getAiHeaders(): Record<string, string> {
   const s = getStoredAiSettings();
   return {
     "x-ai-provider": s.provider,
     "x-ai-api-key": s.apiKey,
-    "x-ai-model-name": s.modelName,
-    "x-resend-api-key": s.resendApiKey || "",
-    "x-smtp-host": s.smtpHost || "",
-    "x-smtp-port": s.smtpPort || "",
-    "x-smtp-user": s.smtpUser || "",
-    "x-smtp-pass": s.smtpPass || "",
-    "x-email-from": s.emailFrom || ""
+    "x-ai-model-name": s.modelName
   };
 }
