@@ -40,7 +40,13 @@ export function ImplementationModal({
 ━━━ ATURAN WAJIB ━━━
 1. LOKASI: seluruh file, folder, dan kode dibuat LANGSUNG di direktori kerja saat ini (\`./\`). JANGAN PERNAH menulis ke direktori temporary (\`$env:TEMP\`, \`AppData\\Local\\Temp\`, \`/tmp\`).
 2. OTONOM PER FASE: kerjakan SEMUA task dalam satu fase berturut-turut tanpa bertanya apa pun ke user. Kamu hanya berhenti di BATAS FASE — bukan di setiap task.
-3. Jangan pernah menandai task selesai sebelum kodenya benar-benar jalan.
+3. SATU TASK PADA SATU WAKTU. DILARANG KERAS:
+   • memborong papan task (loop yang menjalankan task start/complete untuk banyak ref sekaligus)
+   • membangun seluruh aplikasi lebih dulu lalu menandai semua task selesai belakangan
+   • mendelegasikan seluruh proyek ke sub-agent lalu sekadar menyinkronkan status
+   Urutannya wajib: ambil SATU task → start → tulis kodenya → complete → baru ambil task berikutnya.
+   Server menolak lompatan urutan, penandaan ganda, dan penyelesaian yang terlalu cepat.
+4. Jangan pernah menandai task selesai sebelum kodenya benar-benar jalan.
 
 Prasyarat: Node.js (\`node -v\`). Server self-host kamu harus hidup di ${serverUrl}.
 
@@ -83,11 +89,19 @@ Ulangi terus sendiri, tanpa menunggu balasan user:
   D. Tandai selesai (pakai <ref> task-nya, contoh BE-01 — BUKAN plan id):
      ${RNG} task complete <ref> --plan ${planId}
 
-  E. Kalau benar-benar buntu (dependency tidak tersedia, spesifikasi bertentangan):
+  E. Kalau server menolak (HTTP 409), BACA pesannya dan patuhi — jangan diakali:
+       OUT_OF_ORDER       → kamu melompati urutan. Jalankan "task next" dan kerjakan ref yang itu.
+       ALREADY_IN_PROGRESS→ masih ada task lain yang berstatus dikerjakan. Selesaikan itu dulu.
+       NOT_STARTED        → kamu belum menjalankan "task start" untuk ref ini.
+       TOO_FAST           → kamu menandai selesai tanpa benar-benar menulis kode. Kerjakan dulu.
+       PHASE_LOCKED       → fase sebelumnya baru tuntas. Jalankan LANGKAH 3 (verifikasi) dulu,
+                            baru mulai fase berikutnya.
+
+  F. Kalau benar-benar buntu (dependency tidak tersedia, spesifikasi bertentangan):
      ${RNG} task fail <ref> "alasan singkat" --plan ${planId}
      lalu LANGSUNG lanjut ke task berikutnya. Task yang gagal otomatis dipindah ke belakang fasenya untuk dicoba ulang sekali; kalau gagal lagi ia diparkir di paling akhir supaya fase-fase berikutnya tetap jalan. Kamu tidak akan tersangkut di task yang sama.
 
-  F. Batas fase — kembali ke A, KECUALI salah satu ini terjadi:
+  G. Batas fase — kembali ke A, KECUALI salah satu ini terjadi:
        • task yang barusan kamu selesaikan punya isLastTaskOfPhase = true, ATAU
        • nomor "phase" pada task baru BERBEDA dengan fase task sebelumnya
      Kalau salah satunya terjadi, fase sebelumnya sudah tuntas → jalankan LANGKAH 3 dulu, baru teruskan.

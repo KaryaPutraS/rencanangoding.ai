@@ -101,6 +101,8 @@ export interface TaskItem {
   failReason?: string | null;
   /** How many times the agent has marked this task failed; drives retry-then-park order. */
   failCount?: number;
+  /** When the agent marked this task as being worked on. */
+  startedAt?: string;
   orderIndex: number;
   createdAt: string;
   updatedAt: string;

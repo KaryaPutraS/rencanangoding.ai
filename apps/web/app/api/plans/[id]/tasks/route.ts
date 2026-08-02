@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbStore } from "@rencanangoding/db";
-import { prepareTasksForAgent, summarizePhases } from "@rencanangoding/shared";
+import { prepareTasksForAgent, summarizePhases, validateTaskTransition } from "@rencanangoding/shared";
 
 const VALID_STATUSES = ["belum_mulai", "dikerjakan", "selesai", "gagal"];
 
@@ -50,6 +50,30 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
     const plan = await dbStore.getPlan(id);
     if (!plan) {
       return NextResponse.json({ success: false, error: "Plan tidak ditemukan" }, { status: 404 });
+    }
+
+    const currentTasks = await dbStore.getTasks(id);
+    if (!currentTasks.some((t: any) => t.ref === ref)) {
+      return NextResponse.json(
+        { success: false, error: `Task "${ref}" tidak ditemukan pada plan ini` },
+        { status: 404 }
+      );
+    }
+
+    // One task at a time, in order, started before finished, and a phase boundary that
+    // actually holds — otherwise the whole board can be closed in a single loop.
+    const verdict = validateTaskTransition(currentTasks, ref, status, new Date(), {
+      minWorkSeconds: Number(process.env.TASK_MIN_WORK_SECONDS ?? 15),
+      phaseVerifySeconds: Number(process.env.PHASE_VERIFY_SECONDS ?? 60),
+    });
+    if (!verdict.ok) {
+      return NextResponse.json(
+        { success: false, error: verdict.error, code: verdict.code, retryAfter: verdict.retryAfter },
+        {
+          status: 409,
+          ...(verdict.retryAfter ? { headers: { "Retry-After": String(verdict.retryAfter) } } : {})
+        }
+      );
     }
 
     const updatedTask = await dbStore.updateTaskStatus(

@@ -154,3 +154,151 @@ export function summarizePhases(tasks: CliTask[]) {
     };
   });
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sequencing rules
+//
+// Wording in the prompt is a request; a capable agent can still bulk-mark the whole
+// board. One real run built the entire app in a single delegated pass, then closed all
+// 28 tasks with one shell loop — no per-phase verification ever happened. The board is
+// the only place that can actually refuse that, so the rules live here and the API
+// enforces them.
+//
+// None of this can prove work was done. What it can do is make the cheap shortcut fail:
+// tasks must be taken one at a time, in queue order, started before they are completed,
+// and a phase boundary holds long enough for the verification step to actually run.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Defaults. The API layer reads its own environment (TASK_MIN_WORK_SECONDS,
+ * PHASE_VERIFY_SECONDS) and passes overrides in — this module stays free of Node
+ * globals so it can be shared by the server and any isomorphic consumer.
+ */
+
+/** Minimum time between marking a task started and completing it. 0 disables the check. */
+export const MIN_WORK_SECONDS = 15;
+
+/** How long a phase boundary stays shut so end-of-phase verification can run. */
+export const PHASE_VERIFY_SECONDS = 60;
+
+export type TransitionCode =
+  | "OUT_OF_ORDER"
+  | "ALREADY_IN_PROGRESS"
+  | "NOT_STARTED"
+  | "TOO_FAST"
+  | "PHASE_LOCKED";
+
+export interface TransitionResult {
+  ok: boolean;
+  code?: TransitionCode;
+  error?: string;
+  /** Seconds the caller should wait before retrying; only set for timing rejections. */
+  retryAfter?: number;
+}
+
+function timeOf(value: unknown): number {
+  const t = new Date(String(value || "")).getTime();
+  return Number.isNaN(t) ? 0 : t;
+}
+
+/** The single task the agent is allowed to act on right now. */
+export function headTask<T extends CliTask>(tasks: T[]): T | null {
+  return orderTasksForAgent(tasks).find((t) => !isDone(t)) || null;
+}
+
+/**
+ * Decides whether one status change is allowed. Pure — the caller persists nothing until
+ * this returns ok.
+ */
+export function validateTaskTransition(
+  tasks: CliTask[],
+  ref: string,
+  nextStatus: string,
+  now: Date = new Date(),
+  options: { minWorkSeconds?: number; phaseVerifySeconds?: number } = {}
+): TransitionResult {
+  const minWorkMs = Math.max(0, options.minWorkSeconds ?? MIN_WORK_SECONDS) * 1000;
+  const phaseVerifyMs = Math.max(0, options.phaseVerifySeconds ?? PHASE_VERIFY_SECONDS) * 1000;
+
+  const task = tasks.find((t) => t.ref === ref);
+  if (!task) return { ok: true }; // the route reports "not found" on its own
+
+  // Re-opening a task is always allowed; it only ever loses progress.
+  if (nextStatus === "belum_mulai") return { ok: true };
+
+  const head = headTask(tasks);
+
+  if (nextStatus === "dikerjakan") {
+    const inFlight = tasks.find((t) => t.status === "dikerjakan" && t.ref !== ref);
+    if (inFlight) {
+      return {
+        ok: false,
+        code: "ALREADY_IN_PROGRESS",
+        error: `Task "${inFlight.ref}" masih berstatus dikerjakan. Selesaikan dulu task itu sebelum memulai "${ref}" — kerjakan satu per satu, jangan diborong.`,
+      };
+    }
+
+    if (head && head.ref !== ref) {
+      return {
+        ok: false,
+        code: "OUT_OF_ORDER",
+        error: `Urutan task tidak boleh dilompati. Task berikutnya adalah "${head.ref}", bukan "${ref}". Jalankan "task next" untuk melihat task yang benar.`,
+      };
+    }
+
+    // Phase boundary: hold the next phase shut long enough for verification to run.
+    const phase = phaseOf(task);
+    const earlierPhases = [...new Set(tasks.map(phaseOf))].filter((p) => p < phase).sort((a, b) => a - b);
+    const previousPhase = earlierPhases[earlierPhases.length - 1];
+
+    if (previousPhase !== undefined && phaseVerifyMs > 0) {
+      const previousTasks = tasks.filter((t) => phaseOf(t) === previousPhase);
+      const settled = previousTasks.every((t) => isDone(t) || isDeferred(t));
+      const lastFinishedAt = Math.max(0, ...previousTasks.filter(isDone).map((t) => timeOf(t.updatedAt)));
+
+      if (settled && lastFinishedAt > 0) {
+        const elapsed = now.getTime() - lastFinishedAt;
+        if (elapsed < phaseVerifyMs) {
+          const wait = Math.ceil((phaseVerifyMs - elapsed) / 1000);
+          return {
+            ok: false,
+            code: "PHASE_LOCKED",
+            error: `Fase ${previousPhase} baru saja selesai. Jalankan verifikasi fase itu dulu (build, lint, test, dan coba jalankan aplikasinya) sebelum memulai Fase ${phase}. Coba lagi dalam ${wait} detik.`,
+            retryAfter: wait,
+          };
+        }
+      }
+    }
+
+    return { ok: true };
+  }
+
+  if (nextStatus === "selesai" || nextStatus === "gagal") {
+    if (task.status !== "dikerjakan") {
+      return {
+        ok: false,
+        code: "NOT_STARTED",
+        error: `Task "${ref}" belum ditandai dikerjakan. Jalankan "task start ${ref}" dan kerjakan kodenya dulu sebelum menandainya ${nextStatus}.`,
+      };
+    }
+
+    // Completing is fine whenever real work happened; a batch loop closes in milliseconds.
+    if (nextStatus === "selesai" && minWorkMs > 0) {
+      const startedAt = timeOf(task.startedAt || task.updatedAt);
+      const elapsed = now.getTime() - startedAt;
+      if (startedAt > 0 && elapsed < minWorkMs) {
+        const wait = Math.ceil((minWorkMs - elapsed) / 1000);
+        return {
+          ok: false,
+          code: "TOO_FAST",
+          error: `Task "${ref}" baru dimulai ${Math.round(elapsed / 1000)} detik lalu. Kerjakan kodenya sungguh-sungguh dulu — jangan menandai selesai tanpa menulis kode. Coba lagi dalam ${wait} detik.`,
+          retryAfter: wait,
+        };
+      }
+    }
+
+    return { ok: true };
+  }
+
+  return { ok: true };
+}

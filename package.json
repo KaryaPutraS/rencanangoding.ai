@@ -10,10 +10,11 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "verify": "npm run verify:providers && npm run verify:agents && npm run verify:cli",
+    "verify": "npm run verify:providers && npm run verify:agents && npm run verify:cli && npm run verify:sequencing",
     "verify:agents": "node --experimental-strip-types --no-warnings scripts/verify-agents.mjs",
     "verify:providers": "node --experimental-strip-types --no-warnings scripts/verify-providers.mjs",
-    "verify:cli": "node --experimental-strip-types --no-warnings scripts/verify-cli.mjs"
+    "verify:cli": "node --experimental-strip-types --no-warnings scripts/verify-cli.mjs",
+    "verify:sequencing": "node --experimental-strip-types --no-warnings scripts/verify-sequencing.mjs"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

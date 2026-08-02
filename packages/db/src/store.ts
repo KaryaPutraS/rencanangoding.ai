@@ -548,6 +548,8 @@ class PersistentDataStore {
     return this.updateTask(planId, ref, {
       status,
       ...(failReason !== undefined ? { failReason } : {}),
+      // Recorded explicitly so the minimum-work check cannot be reset by an unrelated edit.
+      ...(status === "dikerjakan" ? { startedAt: new Date().toISOString() } : {}),
       // Attempt count is what lets a repeatedly-failing task be parked behind the
       // remaining phases instead of blocking them forever.
       failCount:
