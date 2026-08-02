@@ -47,6 +47,26 @@ interface PersistedState {
   users?: DbUser[];
   otps?: Record<string, DbOtp>;
   sessions?: Record<string, DbSession>;
+  appSettings?: AppSettings;
+}
+
+/** Local, machine-wide preferences for this self-hosted installation. */
+export interface AppSettings {
+  /**
+   * Stable anonymous id for this installation. Lets the vendor's dashboard treat repeat
+   * reports from the same machine as one entry instead of many.
+   */
+  instanceId: string;
+  /**
+   * Whether project METADATA (name, short idea excerpt, tech stack, version) is reported
+   * to the RencanaNgodingAI dashboard when this machine is online. PRD content, mind maps
+   * and tasks are never sent. On by default; switch it off in Settings.
+   */
+  telemetryEnabled: boolean;
+  /** Plan id → ISO timestamp of the last successful report, used to avoid resending. */
+  telemetryReported: Record<string, string>;
+  /** Plan ids that failed to report (e.g. offline) and should be retried. */
+  telemetryPending: string[];
 }
 
 function hashPassword(password: string): string {
@@ -64,6 +84,7 @@ class PersistentDataStore {
   private usersByIdMap = new Map<string, DbUser>(); // key: id
   private otpsMap = new Map<string, DbOtp>(); // key: email
   private sessionsMap = new Map<string, DbSession>(); // key: token
+  private appSettings: AppSettings | null = null;
 
   constructor() {
     this.loadFromDisk();
@@ -88,6 +109,7 @@ class PersistentDataStore {
         });
         Object.entries(data.otps || {}).forEach(([k, v]) => this.otpsMap.set(k.toLowerCase(), v));
         Object.entries(data.sessions || {}).forEach(([k, v]) => this.sessionsMap.set(k, v));
+        if (data.appSettings) this.appSettings = data.appSettings;
       }
     } catch (err) {
       console.error("Could not load store from disk, backing up corrupted file:", err);
@@ -135,12 +157,60 @@ class PersistentDataStore {
         chatMessages,
         users: Array.from(this.usersMap.values()),
         otps,
-        sessions
+        sessions,
+        ...(this.appSettings ? { appSettings: this.appSettings } : {})
       };
 
       fs.writeFileSync(STORE_FILE, JSON.stringify(state, null, 2), "utf-8");
     } catch (err) {
       console.error("Failed to save store to disk:", err);
+    }
+  }
+
+  // --- Local installation settings ---
+
+  /** Reads the settings, creating the default set (telemetry on) on first use. */
+  getAppSettings(): AppSettings {
+    if (!this.appSettings) {
+      this.appSettings = {
+        instanceId: `inst_${crypto.randomBytes(8).toString("hex")}`,
+        telemetryEnabled: true,
+        telemetryReported: {},
+        telemetryPending: []
+      };
+      this.saveToDisk();
+    }
+    // Older stores predate these fields.
+    if (!this.appSettings.telemetryReported) this.appSettings.telemetryReported = {};
+    if (!this.appSettings.telemetryPending) this.appSettings.telemetryPending = [];
+    return this.appSettings;
+  }
+
+  updateAppSettings(updates: Partial<AppSettings>): AppSettings {
+    const current = this.getAppSettings();
+    // instanceId is identity, not a preference — never let it be overwritten.
+    const { instanceId: _ignored, ...safe } = updates;
+    this.appSettings = { ...current, ...safe };
+    this.saveToDisk();
+    return this.appSettings;
+  }
+
+  markTelemetryReported(planId: string) {
+    const settings = this.getAppSettings();
+    settings.telemetryReported[planId] = new Date().toISOString();
+    settings.telemetryPending = settings.telemetryPending.filter((id) => id !== planId);
+    this.saveToDisk();
+  }
+
+  markTelemetryPending(planId: string) {
+    const settings = this.getAppSettings();
+    if (!settings.telemetryPending.includes(planId)) {
+      settings.telemetryPending.push(planId);
+      // Bounded: a machine offline for a long time must not grow this forever.
+      if (settings.telemetryPending.length > 200) {
+        settings.telemetryPending = settings.telemetryPending.slice(-200);
+      }
+      this.saveToDisk();
     }
   }
 

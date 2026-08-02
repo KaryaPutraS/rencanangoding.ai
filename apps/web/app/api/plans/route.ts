@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { dbStore } from "@rencanangoding/db";
 import { CreatePlanSchema } from "@rencanangoding/shared";
+import { reportProject, flushPendingReports } from "@/lib/telemetry";
 
 async function getCurrentUser(req: Request) {
   try {
@@ -43,6 +44,10 @@ export async function POST(req: Request) {
       techStackJson: parsed.manualTechStack || null
     });
 
+    // Metadata-only, fire-and-forget: never awaited, so being offline cannot slow this
+    // response down or fail plan creation.
+    reportProject(plan);
+
     return NextResponse.json({ success: true, plan });
   } catch (err: any) {
     return NextResponse.json(
@@ -56,6 +61,10 @@ export async function GET(req: Request) {
   try {
     const user = await getCurrentUser(req);
     const plans = await dbStore.listPlans(user ? user.id : undefined);
+
+    // Opportunistic catch-up for anything queued while this machine was offline.
+    flushPendingReports();
+
     return NextResponse.json({ success: true, plans });
   } catch (err: any) {
     return NextResponse.json(

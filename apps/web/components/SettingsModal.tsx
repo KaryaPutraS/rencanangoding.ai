@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Settings, Key, Cpu, Sparkles, Check, Eye, EyeOff, Bot, ShieldCheck, Flame, Zap } from "lucide-react";
+import { X, Settings, Key, Cpu, Sparkles, Check, Eye, EyeOff, Bot, ShieldCheck, Flame, Zap, Share2 } from "lucide-react";
 import { useAiSettings, AiSettings } from "@/lib/useSettings";
 
 interface SettingsModalProps {
@@ -27,6 +27,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const [showKey, setShowKey] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // Telemetry lives on the server, because the reporter runs there — a browser-only flag
+  // could not actually stop anything from being sent.
+  const [telemetry, setTelemetry] = useState<{
+    enabled: boolean;
+    forcedOffByEnv: boolean;
+    instanceId: string;
+  } | null>(null);
+
   useEffect(() => {
     if (loaded) {
       setProvider(settings.provider);
@@ -34,6 +42,35 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       setModelName(settings.modelName || (MODEL_PRESETS[settings.provider]?.[0] ?? ""));
     }
   }, [loaded, settings, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch("/api/settings/telemetry")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          setTelemetry({
+            enabled: d.telemetryEnabled,
+            forcedOffByEnv: d.forcedOffByEnv,
+            instanceId: d.instanceId
+          });
+        }
+      })
+      .catch(() => {});
+  }, [isOpen]);
+
+  const toggleTelemetry = async (enabled: boolean) => {
+    setTelemetry((prev) => (prev ? { ...prev, enabled } : prev));
+    try {
+      await fetch("/api/settings/telemetry", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telemetryEnabled: enabled })
+      });
+    } catch {
+      setTelemetry((prev) => (prev ? { ...prev, enabled: !enabled } : prev));
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -236,6 +273,59 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <p className="text-[11px] text-gray-300 leading-relaxed">
               Anda tidak perlu memasukkan API Key. Aplikasi menggunakan mesin AI tiruan lokal yang instan & gratis untuk menguji alur (Ide → Discovery → Mind Map → PRD → Task breakdown).
             </p>
+          </div>
+        )}
+
+        {/* Project metadata reporting — stated plainly, and switchable */}
+        {telemetry && (
+          <div className="p-4 rounded-2xl bg-gray-900/60 border border-white/[0.08] space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <Share2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-xs font-bold text-gray-100 font-mono">Kirim Metadata Projek</div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed mt-1">
+                    Saat online, aplikasi mengirim <span className="text-gray-200">nama projek, cuplikan singkat ide,
+                    tech stack, dan versi aplikasi</span> ke dashboard RencanaNgodingAI.
+                  </p>
+                  <p className="text-[11px] text-emerald-300/90 leading-relaxed mt-1">
+                    Tidak pernah dikirim: isi dokumen PRD, mind map, daftar task, jawaban discovery, riwayat chat AI,
+                    dan API key kamu.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={telemetry.enabled && !telemetry.forcedOffByEnv}
+                disabled={telemetry.forcedOffByEnv}
+                onClick={() => toggleTelemetry(!telemetry.enabled)}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
+                  telemetry.forcedOffByEnv
+                    ? "bg-gray-800 cursor-not-allowed"
+                    : telemetry.enabled
+                      ? "bg-cyan-600"
+                      : "bg-gray-700"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                    telemetry.enabled && !telemetry.forcedOffByEnv ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
+
+            {telemetry.forcedOffByEnv ? (
+              <p className="text-[10px] text-amber-300 font-mono">
+                Dimatikan paksa lewat environment (RENCANANGODING_TELEMETRY=off).
+              </p>
+            ) : (
+              <p className="text-[10px] text-gray-500 font-mono break-all">
+                ID instalasi: {telemetry.instanceId}
+              </p>
+            )}
           </div>
         )}
 

@@ -24,6 +24,30 @@ Kamu memakai API key milikmu sendiri (DeepSeek, OpenAI, Anthropic, Gemini, atau 
 diisi lewat menu Settings atau environment variable. Tidak ada kuota, tidak ada penguncian
 fitur, tidak ada halaman pembayaran — semua kode paywall memang tidak ada di repo ini.
 
+### Laporan Metadata Projek (bisa dimatikan)
+
+Supaya kami tahu fitur mana yang dipakai, instalasi ini **mengirim metadata projek** ke
+dashboard RencanaNgodingAI saat komputermu online. Ini menyala secara default dan bisa
+dimatikan kapan saja.
+
+**Yang dikirim** — nama projek, cuplikan singkat ide (maks. 200 karakter), tech stack,
+versi aplikasi, dan ID instalasi acak.
+
+**Yang TIDAK pernah dikirim** — isi dokumen PRD, mind map, daftar task, jawaban discovery,
+riwayat chat AI, dan API key kamu. Semua itu tidak pernah meninggalkan komputermu.
+
+Cara mematikan:
+
+- Lewat aplikasi: **Settings → Kirim Metadata Projek → matikan sakelarnya**, atau
+- Lewat environment (permanen, tidak bisa dinyalakan dari UI):
+  ```bash
+  RENCANANGODING_TELEMETRY=off
+  ```
+
+Kalau sedang offline, laporan hanya ditunda dan dicoba lagi nanti — aplikasi tetap jalan
+normal tanpa internet. Endpoint tujuan bisa diarahkan ke server lain lewat
+`RENCANANGODING_TELEMETRY_URL`.
+
 ---
 
 ## ⚡ 1-Line Quick Install (Server / VPS)

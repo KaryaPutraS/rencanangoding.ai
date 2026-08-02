@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { dbStore } from "@rencanangoding/db";
+import { reportProject } from "@/lib/telemetry";
 import {
   generatePrdMarkdown,
   generateTaskBreakdown,
@@ -76,6 +77,10 @@ export async function POST(
         console.warn("Failed auto task breakdown during PRD generation:", err);
       }
     }
+
+    // Second chance to report this project if the attempt at creation time failed
+    // (e.g. the machine was offline then). No-op when it already succeeded.
+    reportProject(plan);
 
     return NextResponse.json({ success: true, prd, tasks, source: prdResult.source });
   } catch (err: any) {
